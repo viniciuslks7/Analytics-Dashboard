@@ -2,6 +2,12 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../api/analytics';
 import KPICard from '../components/KPICard';
+import { 
+  SalesChannelChart, 
+  TopProductsChart, 
+  HourlyHeatmap, 
+  DeliveryMetricsChart 
+} from '../components/Charts';
 
 const Dashboard: React.FC = () => {
   const { data: kpiData, isLoading, error } = useQuery({
@@ -40,6 +46,28 @@ const Dashboard: React.FC = () => {
           {kpiData?.kpis.map((kpi, index) => (
             <KPICard key={index} kpi={kpi} />
           ))}
+        </div>
+      </section>
+
+      <section className="charts-section">
+        <h2>Análises Visuais</h2>
+        <div className="charts-grid">
+          <div className="chart-card">
+            <SalesChannelChart />
+          </div>
+          <div className="chart-card">
+            <TopProductsChart />
+          </div>
+        </div>
+        <div className="charts-grid">
+          <div className="chart-card full-width">
+            <HourlyHeatmap />
+          </div>
+        </div>
+        <div className="charts-grid">
+          <div className="chart-card full-width">
+            <DeliveryMetricsChart />
+          </div>
         </div>
       </section>
 

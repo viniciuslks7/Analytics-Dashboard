@@ -197,5 +197,64 @@ body {
     flex-direction: column;
     gap: 0.5rem;
   }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
+/* Charts Section */
+.charts-section {
+  margin-bottom: 2rem;
+}
+
+.charts-section h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-card {
+  background: var(--bg-primary);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chart-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.chart-card.full-width {
+  grid-column: 1 / -1;
+}
+
+.chart-container {
+  position: relative;
+  width: 100%;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chart-container .loading {
+  color: var(--text-secondary);
+  font-size: 1rem;
+}
+
+.chart-container .error {
+  color: var(--danger-color);
+  font-size: 0.875rem;
+  text-align: center;
+}
