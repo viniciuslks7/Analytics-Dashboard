@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  data-generator:
+    image: python:3.12-slim
+    container_name: godlevel-data-generator
+    working_dir: /app
+    volumes:
+      - ./nola-repo:/app:cached
+    environment:
+      - PIP_NO_CACHE_DIR=1
+    command: /bin/sh -c "pip install --no-cache-dir psycopg2-binary Faker && python generate_data.py --db-url 'postgresql://challenge:challenge@host.docker.internal:5432/challenge_db' --months 6"
+    restart: 'no'
+    tty: true
