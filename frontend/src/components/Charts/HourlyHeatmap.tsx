@@ -12,7 +12,7 @@ export const HourlyHeatmap = () => {
     queryFn: () => analyticsAPI.query({
       metrics: ['qtd_vendas'],
       dimensions: ['hora', 'dia_semana'],
-      filters: [],
+      filters: {},
       order_by: [{ field: 'hora', direction: 'asc' }],
       limit: 200
     }),

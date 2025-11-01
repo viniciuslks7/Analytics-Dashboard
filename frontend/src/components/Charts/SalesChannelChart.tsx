@@ -12,7 +12,7 @@ export const SalesChannelChart = () => {
     queryFn: () => analyticsAPI.query({
       metrics: ['faturamento', 'qtd_vendas'],
       dimensions: ['channel'],
-      filters: [],
+      filters: {},
       order_by: [{ field: 'faturamento', direction: 'desc' }],
       limit: 10
     }),

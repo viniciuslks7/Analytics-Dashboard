@@ -12,7 +12,7 @@ export const DeliveryMetricsChart = () => {
     queryFn: () => analyticsAPI.query({
       metrics: ['tempo_medio_entrega', 'qtd_vendas'],
       dimensions: ['bairro'],
-      filters: [],
+      filters: {},
       order_by: [{ field: 'tempo_medio_entrega', direction: 'desc' }],
       limit: 15
     }),

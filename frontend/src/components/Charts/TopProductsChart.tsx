@@ -12,7 +12,7 @@ export const TopProductsChart = () => {
     queryFn: () => analyticsAPI.query({
       metrics: ['qtd_vendas', 'faturamento'],
       dimensions: ['produto'],
-      filters: [],
+      filters: {},
       order_by: [{ field: 'qtd_vendas', direction: 'desc' }],
       limit: 10
     }),
