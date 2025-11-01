@@ -3,7 +3,7 @@ Create Materialized Views for Analytics Performance
 Run this script after populating the database with data
 """
 import asyncio
-import asyncpg
+import psycopg
 from datetime import datetime
 
 
@@ -13,7 +13,7 @@ DATABASE_URL = "postgresql://challenge:challenge@localhost:5432/challenge_db"
 async def create_materialized_views():
     """Create all materialized views for analytics"""
     
-    conn = await asyncpg.connect(DATABASE_URL)
+    conn = await psycopg.AsyncConnection.connect(DATABASE_URL)
     
     try:
         print("=" * 70)
@@ -23,8 +23,9 @@ async def create_materialized_views():
         
         # 1. Vendas Agregadas (Main Analytics View)
         print("📊 Creating vendas_agregadas...")
-        await conn.execute("""
-            DROP MATERIALIZED VIEW IF EXISTS vendas_agregadas CASCADE;
+        async with conn.cursor() as cur:
+            await cur.execute("""
+                DROP MATERIALIZED VIEW IF EXISTS vendas_agregadas CASCADE;
             
             CREATE MATERIALIZED VIEW vendas_agregadas AS
             SELECT
@@ -58,13 +59,14 @@ async def create_materialized_views():
             CREATE INDEX idx_vendas_agregadas_data ON vendas_agregadas(data_venda);
             CREATE INDEX idx_vendas_agregadas_store ON vendas_agregadas(store_id);
             CREATE INDEX idx_vendas_agregadas_channel ON vendas_agregadas(channel_id);
-        """)
+            """)
         print("✓ vendas_agregadas created")
         
         # 2. Produtos Analytics
         print("\n📦 Creating produtos_analytics...")
-        await conn.execute("""
-            DROP MATERIALIZED VIEW IF EXISTS produtos_analytics CASCADE;
+        async with conn.cursor() as cur:
+            await cur.execute("""
+                DROP MATERIALIZED VIEW IF EXISTS produtos_analytics CASCADE;
             
             CREATE MATERIALIZED VIEW produtos_analytics AS
             SELECT
@@ -96,13 +98,14 @@ async def create_materialized_views():
             CREATE INDEX idx_produtos_analytics_product ON produtos_analytics(product_id);
             CREATE INDEX idx_produtos_analytics_data ON produtos_analytics(data_venda);
             CREATE INDEX idx_produtos_analytics_channel ON produtos_analytics(channel_id);
-        """)
+            """)
         print("✓ produtos_analytics created")
         
         # 3. Delivery Metrics
         print("\n🚚 Creating delivery_metrics...")
-        await conn.execute("""
-            DROP MATERIALIZED VIEW IF EXISTS delivery_metrics CASCADE;
+        async with conn.cursor() as cur:
+            await cur.execute("""
+                DROP MATERIALIZED VIEW IF EXISTS delivery_metrics CASCADE;
             
             CREATE MATERIALIZED VIEW delivery_metrics AS
             SELECT
@@ -129,13 +132,14 @@ async def create_materialized_views():
             
             CREATE INDEX idx_delivery_metrics_bairro ON delivery_metrics(bairro);
             CREATE INDEX idx_delivery_metrics_data ON delivery_metrics(data_venda);
-        """)
+            """)
         print("✓ delivery_metrics created")
         
         # 4. Customer RFM (Recency, Frequency, Monetary)
         print("\n👥 Creating customer_rfm...")
-        await conn.execute("""
-            DROP MATERIALIZED VIEW IF EXISTS customer_rfm CASCADE;
+        async with conn.cursor() as cur:
+            await cur.execute("""
+                DROP MATERIALIZED VIEW IF EXISTS customer_rfm CASCADE;
             
             CREATE MATERIALIZED VIEW customer_rfm AS
             SELECT
@@ -158,7 +162,7 @@ async def create_materialized_views():
             CREATE INDEX idx_customer_rfm_frequencia ON customer_rfm(frequencia);
             CREATE INDEX idx_customer_rfm_recencia ON customer_rfm(recencia_dias);
             CREATE INDEX idx_customer_rfm_valor ON customer_rfm(valor_total);
-        """)
+            """)
         print("✓ customer_rfm created")
         
         print()
@@ -169,16 +173,20 @@ async def create_materialized_views():
         
         # Get statistics
         print("📈 Statistics:")
-        row = await conn.fetchrow("SELECT COUNT(*) FROM vendas_agregadas")
+        cur = await conn.execute("SELECT COUNT(*) FROM vendas_agregadas")
+        row = await cur.fetchone()
         print(f"  vendas_agregadas: {row[0]:,} rows")
         
-        row = await conn.fetchrow("SELECT COUNT(*) FROM produtos_analytics")
+        cur = await conn.execute("SELECT COUNT(*) FROM produtos_analytics")
+        row = await cur.fetchone()
         print(f"  produtos_analytics: {row[0]:,} rows")
         
-        row = await conn.fetchrow("SELECT COUNT(*) FROM delivery_metrics")
+        cur = await conn.execute("SELECT COUNT(*) FROM delivery_metrics")
+        row = await cur.fetchone()
         print(f"  delivery_metrics: {row[0]:,} rows")
         
-        row = await conn.fetchrow("SELECT COUNT(*) FROM customer_rfm")
+        cur = await conn.execute("SELECT COUNT(*) FROM customer_rfm")
+        row = await cur.fetchone()
         print(f"  customer_rfm: {row[0]:,} rows")
         
         print()
