@@ -7,7 +7,7 @@ import psycopg
 from datetime import datetime
 
 
-DATABASE_URL = "postgresql://challenge:challenge@localhost:5432/challenge_db"
+DATABASE_URL = "postgresql://challenge:challenge_2024@localhost:5432/challenge_db"
 
 
 async def create_materialized_views():
