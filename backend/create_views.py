@@ -3,8 +3,13 @@ Create Materialized Views for Analytics Performance
 Run this script after populating the database with data
 """
 import asyncio
+import sys
 import psycopg
 from datetime import datetime
+
+# Fix for Windows ProactorEventLoop issue with psycopg3
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 DATABASE_URL = "postgresql://challenge:challenge_2024@localhost:5432/challenge_db"
