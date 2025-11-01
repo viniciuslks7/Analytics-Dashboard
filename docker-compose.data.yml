@@ -9,6 +9,9 @@ services:
       - ./nola-repo:/app:cached
     environment:
       - PIP_NO_CACHE_DIR=1
+      - LANG=C.UTF-8
+      - LC_ALL=C.UTF-8
+      - PYTHONIOENCODING=utf-8
     command: /bin/sh -c "pip install --no-cache-dir psycopg2-binary Faker && python generate_data.py --db-url 'postgresql://challenge:challenge@host.docker.internal:5432/challenge_db' --months 6"
     restart: 'no'
     tty: true
