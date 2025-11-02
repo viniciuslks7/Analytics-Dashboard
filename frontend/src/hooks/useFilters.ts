@@ -118,10 +118,10 @@ export const useFilters = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            metrics: ['SUM(quantidade) as total_vendido'],
+            metrics: ['SUM(ps.quantity) as total_vendido'],
             dimensions: ['nome_produto'],
             filters: {},
-            order_by: [{ field: 'total_vendido', direction: 'desc' }],
+            order_by: [{ field: 'total_vendido', 'direction': 'desc' }],
             limit: 100
           })
         });
