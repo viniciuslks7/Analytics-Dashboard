@@ -50,7 +50,7 @@ class Database:
         try:
             async with self.pool.connection() as conn:
                 async with conn.cursor() as cur:
-                    await cur.execute(query, args if args else None)
+                    await cur.execute(query, args or ())
                     if not cur.description:
                         return []
                     columns = [desc[0] for desc in cur.description]
@@ -69,7 +69,7 @@ class Database:
         try:
             async with self.pool.connection() as conn:
                 async with conn.cursor() as cur:
-                    await cur.execute(query, args if args else None)
+                    await cur.execute(query, args or ())
                     row = await cur.fetchone()
                     if row and cur.description:
                         columns = [desc[0] for desc in cur.description]
@@ -88,7 +88,7 @@ class Database:
         try:
             async with self.pool.connection() as conn:
                 async with conn.cursor() as cur:
-                    await cur.execute(query, args if args else None)
+                    await cur.execute(query, args or ())
                     return cur.rowcount
         except Exception as e:
             logger.error(f"✗ Error executing query: {e}")
