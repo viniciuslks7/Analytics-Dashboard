@@ -147,8 +147,12 @@ class AnalyticsService:
         # Add metrics
         for metric in request.metrics:
             if metric in self.METRICS_MAP:
+                # Predefined metric
                 metric_expr = self.METRICS_MAP[metric]
                 select_parts.append(f"{metric_expr} as {metric}")
+            else:
+                # Custom SQL expression (already contains alias)
+                select_parts.append(metric)
         
         select_clause = ",\n    ".join(select_parts)
         
