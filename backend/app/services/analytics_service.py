@@ -77,6 +77,32 @@ class AnalyticsService:
         """Execute analytics query based on request"""
         start_time = time.time()
         
+        # Extract date filters from filters dict and move to date_range
+        if 'data_venda_gte' in request.filters or 'data_venda_lte' in request.filters:
+            from datetime import datetime
+            from app.models.schemas import DateRangeFilter
+            
+            start_date = None
+            end_date = None
+            
+            if 'data_venda_gte' in request.filters:
+                start_date_str = request.filters.pop('data_venda_gte')
+                if isinstance(start_date_str, str):
+                    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                else:
+                    start_date = start_date_str
+            
+            if 'data_venda_lte' in request.filters:
+                end_date_str = request.filters.pop('data_venda_lte')
+                if isinstance(end_date_str, str):
+                    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                else:
+                    end_date = end_date_str
+            
+            # Set date_range if not already set
+            if not request.date_range:
+                request.date_range = DateRangeFilter(start_date=start_date, end_date=end_date)
+        
         # Build SQL query
         query, params = self._build_query(request)
         
@@ -166,8 +192,12 @@ class AnalyticsService:
                 params.append(request.date_range.end_date)
                 where_conditions.append(f"DATE(s.created_at) <= %s")
         
-        # Add custom filters
+        # Add custom filters (excluding date filters handled above)
         for field, filter_value in request.filters.items():
+            # Skip date filters - they're handled by date_range
+            if field in ('data_venda_gte', 'data_venda_lte'):
+                continue
+                
             if isinstance(filter_value, dict):
                 # Complex filter with operator
                 for operator, value in filter_value.items():
@@ -185,9 +215,16 @@ class AnalyticsService:
                         params.append(value)
                         where_conditions.append(f"{field} {op_map[operator]} %s")
             else:
-                # Simple equality filter
-                params.append(filter_value)
-                where_conditions.append(f"{field} = %s")
+                # Simple equality filter (list = IN clause, single value = equality)
+                if isinstance(filter_value, list):
+                    placeholders = []
+                    for v in filter_value:
+                        params.append(v)
+                        placeholders.append("%s")
+                    where_conditions.append(f"{field} IN ({', '.join(placeholders)})")
+                else:
+                    params.append(filter_value)
+                    where_conditions.append(f"{field} = %s")
         
         where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
         
