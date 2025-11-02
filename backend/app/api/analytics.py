@@ -11,7 +11,8 @@ from app.models.schemas import (
     AnalyticsQueryResponse,
     KPIDashboard,
     DimensionValuesResponse,
-    DimensionValue
+    DimensionValue,
+    PeriodComparisonResponse
 )
 from app.services.analytics_service import analytics_service
 from app.db.database import db
@@ -65,6 +66,28 @@ async def get_kpi_dashboard(
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"KPI calculation error: {str(e)}")
+
+
+@router.get("/compare", response_model=PeriodComparisonResponse)
+async def compare_periods(
+    base_start: date = Query(..., description="Base period start date"),
+    base_end: date = Query(..., description="Base period end date"),
+    compare_start: date = Query(..., description="Compare period start date"),
+    compare_end: date = Query(..., description="Compare period end date")
+):
+    """
+    Compare metrics between two time periods
+    
+    Example: /api/v1/analytics/compare?base_start=2025-05-13&base_end=2025-05-20&compare_start=2025-05-05&compare_end=2025-05-12
+    """
+    try:
+        logger.debug(f"📊 Period Comparison: Base({base_start} to {base_end}) vs Compare({compare_start} to {compare_end})")
+        result = await analytics_service.compare_periods(base_start, base_end, compare_start, compare_end)
+        logger.debug(f"✅ Comparison Success: {len(result.comparisons)} metrics compared")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Comparison Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Period comparison error: {str(e)}")
 
 
 @router.get("/dimensions/stores", response_model=DimensionValuesResponse)

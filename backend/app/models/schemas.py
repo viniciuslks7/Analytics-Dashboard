@@ -67,6 +67,24 @@ class ComparisonPeriod(BaseModel):
     compare_end: date
 
 
+class MetricComparison(BaseModel):
+    """Comparison of a single metric between two periods"""
+    metric_name: str
+    base_value: float
+    compare_value: float
+    absolute_change: float
+    percentage_change: float
+    trend: str  # 'up', 'down', 'neutral'
+
+
+class PeriodComparisonResponse(BaseModel):
+    """Response for period comparison"""
+    base_period: Dict[str, date]
+    compare_period: Dict[str, date]
+    comparisons: List[MetricComparison]
+    metadata: QueryMetadata
+
+
 # Response Models
 class AnalyticsDataPoint(BaseModel):
     """Single data point in analytics response"""

@@ -357,6 +357,96 @@ SELECT
             period=period_label,
             metadata=metadata
         )
+    
+    async def compare_periods(
+        self,
+        base_start: date,
+        base_end: date,
+        compare_start: date,
+        compare_end: date
+    ) -> Dict[str, Any]:
+        """Compare metrics between two periods"""
+        from app.models.schemas import MetricComparison, PeriodComparisonResponse
+        
+        start_time = time.time()
+        
+        # Query for base period
+        base_query = """
+        SELECT
+            SUM(total_amount) as faturamento_total,
+            AVG(total_amount) as ticket_medio,
+            COUNT(DISTINCT s.id) as total_vendas,
+            COUNT(DISTINCT customer_id) FILTER (WHERE customer_id IS NOT NULL) as clientes_unicos,
+            AVG(delivery_seconds / 60.0) FILTER (WHERE delivery_seconds IS NOT NULL) as tempo_medio_entrega
+        FROM sales s
+        WHERE sale_status_desc = 'COMPLETED'
+          AND DATE(s.created_at) >= %s
+          AND DATE(s.created_at) <= %s
+        """
+        
+        # Query for compare period  
+        compare_query = """
+        SELECT
+            SUM(total_amount) as faturamento_total,
+            AVG(total_amount) as ticket_medio,
+            COUNT(DISTINCT s.id) as total_vendas,
+            COUNT(DISTINCT customer_id) FILTER (WHERE customer_id IS NOT NULL) as clientes_unicos,
+            AVG(delivery_seconds / 60.0) FILTER (WHERE delivery_seconds IS NOT NULL) as tempo_medio_entrega
+        FROM sales s
+        WHERE sale_status_desc = 'COMPLETED'
+          AND DATE(s.created_at) >= %s
+          AND DATE(s.created_at) <= %s
+        """
+        
+        base_row = await db.fetch_one(base_query, base_start, base_end)
+        compare_row = await db.fetch_one(compare_query, compare_start, compare_end)
+        
+        # Build comparisons
+        comparisons = []
+        metrics = [
+            ('faturamento_total', 'Faturamento Total'),
+            ('ticket_medio', 'Ticket Médio'),
+            ('total_vendas', 'Total de Vendas'),
+            ('clientes_unicos', 'Clientes Únicos'),
+            ('tempo_medio_entrega', 'Tempo Médio de Entrega (min)')
+        ]
+        
+        for metric_key, metric_name in metrics:
+            base_val = float(base_row[metric_key] or 0)
+            compare_val = float(compare_row[metric_key] or 0)
+            
+            absolute_change = base_val - compare_val
+            percentage_change = ((base_val - compare_val) / compare_val * 100) if compare_val != 0 else 0
+            
+            # Determine trend
+            if abs(percentage_change) < 1:
+                trend = 'neutral'
+            elif percentage_change > 0:
+                trend = 'up'
+            else:
+                trend = 'down'
+            
+            comparisons.append(MetricComparison(
+                metric_name=metric_name,
+                base_value=base_val,
+                compare_value=compare_val,
+                absolute_change=absolute_change,
+                percentage_change=round(percentage_change, 2),
+                trend=trend
+            ))
+        
+        query_time_ms = (time.time() - start_time) * 1000
+        
+        return PeriodComparisonResponse(
+            base_period={'start': base_start, 'end': base_end},
+            compare_period={'start': compare_start, 'end': compare_end},
+            comparisons=comparisons,
+            metadata=QueryMetadata(
+                total_rows=len(comparisons),
+                query_time_ms=round(query_time_ms, 2),
+                cached=False
+            )
+        )
 
 
 # Global service instance
