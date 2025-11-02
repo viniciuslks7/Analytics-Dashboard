@@ -1,0 +1,32 @@
+.filter-panel {
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin-bottom: 24px;
+}
+
+.filter-panel-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.filter-panel-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (min-width: 768px) {
+  .filter-panel-content {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .filter-panel-content > * {
+    flex: 1;
+    min-width: 200px;
+  }
+}

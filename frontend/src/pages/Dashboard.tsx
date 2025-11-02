@@ -2,6 +2,8 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../api/analytics';
 import KPICard from '../components/KPICard';
+import FilterPanel from '../components/Filters/FilterPanel';
+import { useFilters, getAPIFilters } from '../hooks/useFilters';
 import { 
   SalesChannelChart, 
   TopProductsChart, 
@@ -10,9 +12,12 @@ import {
 } from '../components/Charts';
 
 const Dashboard: React.FC = () => {
+  const filterState = useFilters();
+  const apiFilters = getAPIFilters(filterState);
+
   const { data: kpiData, isLoading, error } = useQuery({
-    queryKey: ['kpis'],
-    queryFn: () => analyticsAPI.getKPIs(),
+    queryKey: ['kpis', apiFilters],
+    queryFn: () => analyticsAPI.getKPIs(apiFilters),
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
@@ -41,6 +46,9 @@ const Dashboard: React.FC = () => {
         <p className="period">{kpiData?.period}</p>
       </header>
 
+      {/* Filtros Globais */}
+      <FilterPanel />
+
       <section className="kpi-section">
         <div className="kpi-grid">
           {kpiData?.kpis.map((kpi, index) => (
@@ -53,20 +61,20 @@ const Dashboard: React.FC = () => {
         <h2>Análises Visuais</h2>
         <div className="charts-grid">
           <div className="chart-card">
-            <SalesChannelChart />
+            <SalesChannelChart filters={apiFilters} />
           </div>
           <div className="chart-card">
-            <TopProductsChart />
+            <TopProductsChart filters={apiFilters} />
           </div>
         </div>
         <div className="charts-grid">
           <div className="chart-card full-width">
-            <HourlyHeatmap />
+            <HourlyHeatmap filters={apiFilters} />
           </div>
         </div>
         <div className="charts-grid">
           <div className="chart-card full-width">
-            <DeliveryMetricsChart />
+            <DeliveryMetricsChart filters={apiFilters} />
           </div>
         </div>
       </section>

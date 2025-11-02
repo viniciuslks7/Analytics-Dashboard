@@ -3,16 +3,20 @@ import * as echarts from 'echarts';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
 
-export const HourlyHeatmap = () => {
+interface HourlyHeatmapProps {
+  filters?: Record<string, any>;
+}
+
+export const HourlyHeatmap = ({ filters = {} }: HourlyHeatmapProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['hourly-heatmap'],
+    queryKey: ['hourly-heatmap', filters],
     queryFn: () => analyticsAPI.query({
       metrics: ['qtd_vendas'],
       dimensions: ['hora', 'dia_semana'],
-      filters: {},
+      filters: filters,
       order_by: [{ field: 'hora', direction: 'asc' }],
       limit: 200
     }),

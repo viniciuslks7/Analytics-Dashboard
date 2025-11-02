@@ -8,10 +8,18 @@ import type {
 
 export const analyticsAPI = {
   // Get KPI Dashboard
-  getKPIs: async (params?: {
-    start_date?: string;
-    end_date?: string;
-  }): Promise<KPIDashboard> => {
+  getKPIs: async (filters?: Record<string, any>): Promise<KPIDashboard> => {
+    const params: any = {};
+    
+    // Convert filters to query params
+    if (filters) {
+      if (filters.data_venda_gte) params.start_date = filters.data_venda_gte;
+      if (filters.data_venda_lte) params.end_date = filters.data_venda_lte;
+      if (filters.canal_venda) params.channels = filters.canal_venda.join(',');
+      if (filters.nome_loja) params.stores = filters.nome_loja.join(',');
+      if (filters.nome_produto) params.products = filters.nome_produto.join(',');
+    }
+    
     const response = await apiClient.get('/api/v1/analytics/kpis', { params });
     return response.data;
   },

@@ -3,16 +3,20 @@ import * as echarts from 'echarts';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
 
-export const SalesChannelChart = () => {
+interface SalesChannelChartProps {
+  filters?: Record<string, any>;
+}
+
+export const SalesChannelChart = ({ filters = {} }: SalesChannelChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['sales-by-channel'],
+    queryKey: ['sales-by-channel', filters],
     queryFn: () => analyticsAPI.query({
       metrics: ['faturamento', 'qtd_vendas'],
       dimensions: ['channel'],
-      filters: {},
+      filters: filters,
       order_by: [{ field: 'faturamento', direction: 'desc' }],
       limit: 10
     }),

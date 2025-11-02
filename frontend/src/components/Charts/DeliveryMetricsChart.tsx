@@ -3,16 +3,20 @@ import * as echarts from 'echarts';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
 
-export const DeliveryMetricsChart = () => {
+interface DeliveryMetricsChartProps {
+  filters?: Record<string, any>;
+}
+
+export const DeliveryMetricsChart = ({ filters = {} }: DeliveryMetricsChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['delivery-metrics'],
+    queryKey: ['delivery-metrics', filters],
     queryFn: () => analyticsAPI.query({
       metrics: ['tempo_medio_entrega', 'qtd_vendas'],
       dimensions: ['bairro'],
-      filters: {},
+      filters: filters,
       order_by: [{ field: 'tempo_medio_entrega', direction: 'desc' }],
       limit: 15
     }),
