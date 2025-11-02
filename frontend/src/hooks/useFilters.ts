@@ -32,10 +32,10 @@ export interface FilterState {
   resetFilters: () => void;
 }
 
-// Initial date range: last 30 days
+// Initial date range: data period in database (2025-05-05 to 2025-05-20)
 const initialDateRange: [Dayjs, Dayjs] = [
-  dayjs().subtract(30, 'day'),
-  dayjs()
+  dayjs('2025-05-05'),
+  dayjs('2025-05-20')
 ];
 
 export const useFilterStore = create<FilterState>((set) => ({
