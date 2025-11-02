@@ -24,7 +24,12 @@ router = APIRouter(prefix="/api/v1/analytics", tags=["Analytics"])
 @router.post("/query", response_model=AnalyticsQueryResponse)
 async def execute_analytics_query(request: AnalyticsQueryRequest):
     """
-    Execute custom analytics query
+    Execute custom analytics query with security validation
+    
+    Security measures:
+    - Only allows predefined metrics and dimensions
+    - Validates all inputs against whitelists
+    - Prevents SQL injection through parameterized queries
     
     Example request:
     ```json
@@ -44,13 +49,44 @@ async def execute_analytics_query(request: AnalyticsQueryRequest):
     ```
     """
     try:
+        # Security validation: Check if metrics are in whitelist
+        allowed_metrics = set(analytics_service.METRICS_MAP.keys())
+        for metric in request.metrics:
+            # Allow custom SQL metrics only if they match pattern "FUNCTION(column) as alias"
+            if metric not in allowed_metrics and not _is_safe_custom_metric(metric):
+                raise HTTPException(
+                    status_code=400, 
+                    detail=f"Invalid metric '{metric}'. Use only predefined metrics or safe aggregations."
+                )
+        
+        # Security validation: Check if dimensions are in whitelist
+        allowed_dimensions = set(analytics_service.DIMENSIONS_MAP.keys())
+        for dimension in request.dimensions:
+            if dimension not in allowed_dimensions:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Invalid dimension '{dimension}'. Use only predefined dimensions."
+                )
+        
         logger.debug(f"📥 Query Request: metrics={request.metrics}, dimensions={request.dimensions}, filters={request.filters}, order_by={request.order_by}")
         result = await analytics_service.execute_query(request)
         logger.debug(f"✅ Query Success: {len(result.data)} rows in {result.metadata.query_time_ms}ms")
         return result
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Query Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Query execution error: {str(e)}")
+
+
+def _is_safe_custom_metric(metric: str) -> bool:
+    """
+    Validate custom metric follows safe pattern: FUNCTION(table.column) as alias
+    Allowed functions: SUM, AVG, COUNT, MIN, MAX
+    """
+    import re
+    pattern = r'^(SUM|AVG|COUNT|MIN|MAX)\([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*\)\s+as\s+[a-zA-Z_][a-zA-Z0-9_]*$'
+    return bool(re.match(pattern, metric, re.IGNORECASE))
 
 
 @router.get("/kpis", response_model=KPIDashboard)

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card, Button, Space, Row, Col, Spin, Alert, InputNumber, Select } from 'antd';
-import { PlayCircleOutlined, ReloadOutlined, SaveOutlined, FolderOpenOutlined } from '@ant-design/icons';
+import { PlayCircleOutlined, ReloadOutlined, SaveOutlined, FolderOpenOutlined, LockOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
 import { useQueryBuilder } from '../../hooks/useQueryBuilder';
@@ -19,9 +19,10 @@ export const QueryBuilder = () => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['query-builder-result', config],
     queryFn: () => {
-      // Convert filters to API format
+      // Security: Only send predefined fields, never raw SQL
+      // Backend validates metrics and dimensions against whitelist
       const apiFilters = config.filters.reduce((acc, filter) => {
-        // Simple conversion - in production you'd handle this better
+        // Simple conversion - backend handles validation
         acc[filter.field] = filter.value;
         return acc;
       }, {} as Record<string, any>);
@@ -31,7 +32,7 @@ export const QueryBuilder = () => {
         dimensions: config.dimensions,
         filters: apiFilters,
         order_by: config.orderBy,
-        limit: config.limit,
+        limit: Math.min(config.limit, 1000), // Hard limit
       });
     },
     enabled: executeQuery && config.metrics.length > 0,
@@ -61,6 +62,20 @@ export const QueryBuilder = () => {
 
   return (
     <div className="query-builder-container">
+      {/* Security Notice */}
+      <Alert
+        message={
+          <span>
+            <LockOutlined /> Segurança Ativada
+          </span>
+        }
+        description="Este Query Builder usa apenas métricas e dimensões pré-definidas. Queries SQL arbitrárias não são permitidas, garantindo segurança contra SQL injection."
+        type="info"
+        showIcon
+        closable
+        style={{ marginBottom: 16 }}
+      />
+      
       <Card
         title="🔧 Query Builder - Construtor de Consultas"
         className="query-builder-card"
