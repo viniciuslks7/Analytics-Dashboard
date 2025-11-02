@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../api/analytics';
 import KPICard from '../components/KPICard';
 import FilterPanel from '../components/Filters/FilterPanel';
+import { PeriodComparison } from '../components/PeriodComparison';
 import { useFilters, getAPIFilters } from '../hooks/useFilters';
 import { 
   SalesChannelChart, 
@@ -48,6 +49,9 @@ const Dashboard: React.FC = () => {
 
       {/* Filtros Globais */}
       <FilterPanel />
+
+      {/* Comparação de Períodos */}
+      <PeriodComparison />
 
       <section className="kpi-section">
         <div className="kpi-grid">

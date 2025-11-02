@@ -1,0 +1,59 @@
+.comparison-card {
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.comparison-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.comparison-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.comparison-header h4 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.comparison-values {
+  margin-bottom: 12px;
+}
+
+.comparison-change {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.change-label {
+  font-size: 13px;
+  color: #8c8c8c;
+}
+
+.change-value {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.change-value.up {
+  color: #52c41a;
+}
+
+.change-value.down {
+  color: #ff4d4f;
+}
+
+.change-value.neutral {
+  color: #8c8c8c;
+}

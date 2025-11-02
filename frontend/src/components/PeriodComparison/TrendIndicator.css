@@ -1,0 +1,43 @@
+.trend-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+.trend-up {
+  color: #52c41a;
+  background-color: #f6ffed;
+}
+
+.trend-down {
+  color: #ff4d4f;
+  background-color: #fff1f0;
+}
+
+.trend-neutral {
+  color: #8c8c8c;
+  background-color: #fafafa;
+}
+
+.trend-icon {
+  font-size: 1.2em;
+  line-height: 1;
+}
+
+.trend-small {
+  font-size: 12px;
+  padding: 1px 6px;
+}
+
+.trend-medium {
+  font-size: 14px;
+  padding: 2px 8px;
+}
+
+.trend-large {
+  font-size: 16px;
+  padding: 4px 12px;
+}

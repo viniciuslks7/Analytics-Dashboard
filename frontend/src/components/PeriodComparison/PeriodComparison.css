@@ -1,0 +1,24 @@
+.period-comparison-container {
+  margin-bottom: 24px;
+}
+
+.period-selectors {
+  width: 100%;
+}
+
+.period-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.period-selector label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.quick-compare-buttons {
+  display: flex;
+  justify-content: center;
+}
