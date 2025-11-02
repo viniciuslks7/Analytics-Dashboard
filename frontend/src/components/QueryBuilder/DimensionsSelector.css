@@ -1,0 +1,17 @@
+.dimensions-selector-card {
+  margin-bottom: 16px;
+}
+
+.selected-dimensions {
+  min-height: 60px;
+  padding: 8px;
+  background: #fafafa;
+  border-radius: 4px;
+}
+
+.empty-state {
+  color: #999;
+  text-align: center;
+  padding: 20px;
+  font-size: 13px;
+}

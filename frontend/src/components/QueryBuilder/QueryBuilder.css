@@ -1,0 +1,41 @@
+.query-builder-container {
+  margin-bottom: 24px;
+}
+
+.query-builder-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.empty-state {
+  color: #999;
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 13px;
+}
+
+.results-container {
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.results-header {
+  padding: 12px;
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+  font-size: 13px;
+}
+
+.results-table {
+  padding: 12px;
+}
+
+.results-table pre {
+  background: #f5f5f5;
+  padding: 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  margin: 0;
+}
