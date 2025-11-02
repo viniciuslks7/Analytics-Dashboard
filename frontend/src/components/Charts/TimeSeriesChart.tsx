@@ -27,19 +27,27 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
     { value: 'tempo_medio_entrega', label: 'Tempo Médio de Entrega', color: '#eb2f96' },
   ];
 
-  const dimensionMap = {
-    day: 'data',
-    week: 'mes', // Will use week aggregation in query
-    month: 'mes'
+  // Mapeamento para agregação temporal correta
+  const getTemporalDimension = () => {
+    switch (granularity) {
+      case 'day':
+        return 'data';
+      case 'week':
+        return 'semana'; // EXTRACT(WEEK FROM created_at)
+      case 'month':
+        return 'mes';
+      default:
+        return 'data';
+    }
   };
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['time-series', selectedMetrics, granularity, filters],
     queryFn: () => analyticsAPI.query({
       metrics: selectedMetrics,
-      dimensions: [dimensionMap[granularity]],
+      dimensions: [getTemporalDimension()],
       filters: filters,
-      order_by: [{ field: dimensionMap[granularity], direction: 'asc' }],
+      order_by: [{ field: getTemporalDimension(), direction: 'asc' }],
       limit: 365
     }),
     enabled: selectedMetrics.length > 0
@@ -53,16 +61,28 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
     }
 
     if (data?.data && data.data.length > 0) {
-      const dimension = dimensionMap[granularity];
+      const dimension = getTemporalDimension();
       const dates = data.data.map((row: any) => row[dimension]);
+      
+      // Separar métricas por escala
+      const monetaryMetrics = ['faturamento', 'ticket_medio'];
+      const countMetrics = ['qtd_vendas', 'clientes_unicos'];
+      const timeMetrics = ['tempo_medio_entrega'];
       
       const series = selectedMetrics.map(metric => {
         const metricConfig = metricsOptions.find(m => m.value === metric);
         const values = data.data.map((row: any) => Number(row[metric]) || 0);
 
+        // Determinar qual eixo Y usar
+        let yAxisIndex = 0; // Padrão: eixo esquerdo (valores monetários/grandes)
+        if (countMetrics.includes(metric) || timeMetrics.includes(metric)) {
+          yAxisIndex = 1; // Eixo direito para contagens e tempo
+        }
+
         return {
           name: metricConfig?.label || metric,
           type: 'line' as const,
+          yAxisIndex: yAxisIndex,
           data: values,
           smooth: true,
           symbol: 'circle',
@@ -154,16 +174,31 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
             }
           }
         },
-        yAxis: {
-          type: 'value',
-          axisLabel: {
-            formatter: (value: number) => {
-              if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-              if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
-              return value.toFixed(0);
+        yAxis: [
+          {
+            type: 'value',
+            name: 'R$ (Faturamento/Ticket)',
+            position: 'left',
+            axisLabel: {
+              formatter: (value: number) => {
+                if (value >= 1000000) return `R$ ${(value / 1000000).toFixed(1)}M`;
+                if (value >= 1000) return `R$ ${(value / 1000).toFixed(1)}K`;
+                return `R$ ${value.toFixed(0)}`;
+              }
+            }
+          },
+          {
+            type: 'value',
+            name: 'Quantidade',
+            position: 'right',
+            axisLabel: {
+              formatter: (value: number) => {
+                if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
+                return value.toFixed(0);
+              }
             }
           }
-        },
+        ],
         dataZoom: [
           {
             type: 'inside',

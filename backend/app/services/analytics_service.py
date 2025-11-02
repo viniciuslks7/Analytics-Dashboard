@@ -45,6 +45,7 @@ class AnalyticsService:
         "data": ("DATE(s.created_at)", "FROM sales s"),
         "hora": ("EXTRACT(HOUR FROM s.created_at)", "FROM sales s"),
         "dia_semana": ("EXTRACT(DOW FROM s.created_at)", "FROM sales s"),
+        "semana": ("TO_CHAR(s.created_at, 'IYYY-IW')", "FROM sales s"),  # Formato: 2025-19
         "mes": ("TO_CHAR(s.created_at, 'YYYY-MM')", "FROM sales s"),
         "periodo_dia": ("""
             CASE 
