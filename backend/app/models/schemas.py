@@ -39,8 +39,8 @@ class DateRangeFilter(BaseModel):
 class AnalyticsQueryRequest(BaseModel):
     """Generic analytics query request"""
     metrics: List[str] = Field(
-        ..., 
-        description="Metrics to calculate (e.g., 'faturamento', 'ticket_medio', 'qtd_vendas')"
+        default=[],
+        description="Metrics to calculate (e.g., 'faturamento', 'ticket_medio', 'qtd_vendas'). Can be empty when only selecting dimensions."
     )
     dimensions: List[str] = Field(
         default=[],
