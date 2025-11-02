@@ -28,13 +28,12 @@ interface DataTableProps {
 
 interface TableRow {
   data: string;
-  loja: string;
-  canal: string;
-  produto: string;
-  quantidade: number;
+  nome_loja: string;
+  canal_venda: string;
+  qtd_vendas: number;
   faturamento: number;
   ticket_medio: number;
-  tempo_entrega: number;
+  clientes_unicos: number;
 }
 
 export const DataTable = ({ filters = {} }: DataTableProps) => {
@@ -51,12 +50,12 @@ export const DataTable = ({ filters = {} }: DataTableProps) => {
     queryKey: ['table-data', filters, pagination.pageSize],
     queryFn: () => analyticsAPI.query({
       metrics: [
-        'SUM(ps.quantity) as quantidade',
+        'COUNT(DISTINCT s.id) as qtd_vendas',
         'SUM(total_amount) as faturamento',
         'AVG(total_amount) as ticket_medio',
-        'AVG(delivery_seconds / 60.0) as tempo_entrega'
+        'COUNT(DISTINCT customer_id) as clientes_unicos'
       ],
-      dimensions: ['data', 'nome_loja', 'canal_venda', 'nome_produto'],
+      dimensions: ['data', 'nome_loja', 'canal_venda'],
       filters: filters,
       order_by: [{ field: 'data', direction: 'desc' }],
       limit: 500
@@ -88,19 +87,13 @@ export const DataTable = ({ filters = {} }: DataTableProps) => {
         size: 120,
       },
       {
-        accessorKey: 'nome_produto',
-        header: 'Produto',
-        cell: ({ getValue }) => getValue() || '-',
-        size: 200,
-      },
-      {
-        accessorKey: 'quantidade',
-        header: 'Quantidade',
+        accessorKey: 'qtd_vendas',
+        header: 'Qtd Vendas',
         cell: ({ getValue }) => {
           const value = getValue() as number;
           return value ? value.toLocaleString('pt-BR') : '0';
         },
-        size: 100,
+        size: 120,
       },
       {
         accessorKey: 'faturamento',
@@ -121,11 +114,11 @@ export const DataTable = ({ filters = {} }: DataTableProps) => {
         size: 130,
       },
       {
-        accessorKey: 'tempo_entrega',
-        header: 'Tempo Entrega (min)',
+        accessorKey: 'clientes_unicos',
+        header: 'Clientes Únicos',
         cell: ({ getValue }) => {
           const value = getValue() as number;
-          return value ? `${value.toFixed(1)} min` : '-';
+          return value ? value.toLocaleString('pt-BR') : '0';
         },
         size: 150,
       },
@@ -206,7 +199,7 @@ export const DataTable = ({ filters = {} }: DataTableProps) => {
   const totals = useMemo(() => {
     const rows = table.getFilteredRowModel().rows;
     return {
-      quantidade: rows.reduce((sum, row) => sum + (Number(row.getValue('quantidade')) || 0), 0),
+      qtd_vendas: rows.reduce((sum, row) => sum + (Number(row.getValue('qtd_vendas')) || 0), 0),
       faturamento: rows.reduce((sum, row) => sum + (Number(row.getValue('faturamento')) || 0), 0),
     };
   }, [table.getFilteredRowModel().rows]);
@@ -304,8 +297,8 @@ export const DataTable = ({ filters = {} }: DataTableProps) => {
               </tbody>
               <tfoot>
                 <tr className="totals-row">
-                  <td colSpan={4}><strong>TOTAIS</strong></td>
-                  <td><strong>{totals.quantidade.toLocaleString('pt-BR')}</strong></td>
+                  <td colSpan={3}><strong>TOTAIS</strong></td>
+                  <td><strong>{totals.qtd_vendas.toLocaleString('pt-BR')}</strong></td>
                   <td><strong>R$ {totals.faturamento.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong></td>
                   <td colSpan={2}></td>
                 </tr>
