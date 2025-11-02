@@ -4,6 +4,7 @@ Analytics API Routes
 from fastapi import APIRouter, Query, HTTPException
 from typing import Optional, List
 from datetime import date
+import logging
 
 from app.models.schemas import (
     AnalyticsQueryRequest,
@@ -15,6 +16,7 @@ from app.models.schemas import (
 from app.services.analytics_service import analytics_service
 from app.db.database import db
 
+logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/v1/analytics", tags=["Analytics"])
 
 
@@ -41,9 +43,12 @@ async def execute_analytics_query(request: AnalyticsQueryRequest):
     ```
     """
     try:
+        logger.debug(f"📥 Query Request: metrics={request.metrics}, dimensions={request.dimensions}, filters={request.filters}, order_by={request.order_by}")
         result = await analytics_service.execute_query(request)
+        logger.debug(f"✅ Query Success: {len(result.data)} rows in {result.metadata.query_time_ms}ms")
         return result
     except Exception as e:
+        logger.error(f"❌ Query Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Query execution error: {str(e)}")
 
 

@@ -37,7 +37,9 @@ class AnalyticsService:
     # Mapping of dimension names to table fields
     DIMENSIONS_MAP = {
         "channel": ("ch.name", "FROM sales s JOIN channels ch ON s.channel_id = ch.id"),
+        "canal_venda": ("ch.name", "FROM sales s JOIN channels ch ON s.channel_id = ch.id"),  # Alias PT-BR
         "store": ("st.name", "FROM sales s JOIN stores st ON s.store_id = st.id"),
+        "nome_loja": ("st.name", "FROM sales s JOIN stores st ON s.store_id = st.id"),  # Alias PT-BR
         "store_id": ("s.store_id", "FROM sales s"),
         "channel_id": ("s.channel_id", "FROM sales s"),
         "data": ("DATE(s.created_at)", "FROM sales s"),
@@ -57,6 +59,11 @@ class AnalyticsService:
             JOIN product_sales ps ON s.id = ps.sale_id 
             JOIN products p ON ps.product_id = p.id
         """),
+        "nome_produto": ("p.name", """
+            FROM sales s 
+            JOIN product_sales ps ON s.id = ps.sale_id 
+            JOIN products p ON ps.product_id = p.id
+        """),  # Alias PT-BR
         "categoria": ("cat.name", """
             FROM sales s 
             JOIN product_sales ps ON s.id = ps.sale_id 
