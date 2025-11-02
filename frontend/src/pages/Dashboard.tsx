@@ -9,7 +9,8 @@ import {
   SalesChannelChart, 
   TopProductsChart, 
   HourlyHeatmap, 
-  DeliveryMetricsChart 
+  DeliveryMetricsChart,
+  TimeSeriesChart
 } from '../components/Charts';
 
 const Dashboard: React.FC = () => {
@@ -63,6 +64,14 @@ const Dashboard: React.FC = () => {
 
       <section className="charts-section">
         <h2>Análises Visuais</h2>
+        
+        {/* Gráfico de Linha Temporal */}
+        <div className="charts-grid">
+          <div className="chart-card full-width">
+            <TimeSeriesChart filters={apiFilters} />
+          </div>
+        </div>
+
         <div className="charts-grid">
           <div className="chart-card">
             <SalesChannelChart filters={apiFilters} />
