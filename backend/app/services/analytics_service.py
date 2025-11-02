@@ -161,10 +161,10 @@ class AnalyticsService:
         if request.date_range:
             if request.date_range.start_date:
                 params.append(request.date_range.start_date)
-                where_conditions.append(f"DATE(s.created_at) >= ${len(params)}")
+                where_conditions.append(f"DATE(s.created_at) >= %s")
             if request.date_range.end_date:
                 params.append(request.date_range.end_date)
-                where_conditions.append(f"DATE(s.created_at) <= ${len(params)}")
+                where_conditions.append(f"DATE(s.created_at) <= %s")
         
         # Add custom filters
         for field, filter_value in request.filters.items():
@@ -173,21 +173,21 @@ class AnalyticsService:
                 for operator, value in filter_value.items():
                     if operator == "eq":
                         params.append(value)
-                        where_conditions.append(f"{field} = ${len(params)}")
+                        where_conditions.append(f"{field} = %s")
                     elif operator == "in" and isinstance(value, list):
                         placeholders = []
                         for v in value:
                             params.append(v)
-                            placeholders.append(f"${len(params)}")
+                            placeholders.append("%s")
                         where_conditions.append(f"{field} IN ({', '.join(placeholders)})")
                     elif operator in ["gt", "gte", "lt", "lte"]:
                         op_map = {"gt": ">", "gte": ">=", "lt": "<", "lte": "<="}
                         params.append(value)
-                        where_conditions.append(f"{field} {op_map[operator]} ${len(params)}")
+                        where_conditions.append(f"{field} {op_map[operator]} %s")
             else:
                 # Simple equality filter
                 params.append(filter_value)
-                where_conditions.append(f"{field} = ${len(params)}")
+                where_conditions.append(f"{field} = %s")
         
         where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
         
