@@ -242,10 +242,10 @@ SELECT
         params = []
         if start_date:
             params.append(start_date)
-            date_filter += f" AND DATE(s.created_at) >= ${len(params)}"
+            date_filter += f" AND DATE(s.created_at) >= %s"
         if end_date:
             params.append(end_date)
-            date_filter += f" AND DATE(s.created_at) <= ${len(params)}"
+            date_filter += f" AND DATE(s.created_at) <= %s"
         
         query = f"""
         SELECT
