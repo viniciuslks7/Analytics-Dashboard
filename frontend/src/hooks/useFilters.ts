@@ -85,7 +85,7 @@ export const useFilters = () => {
             metrics: [],
             dimensions: ['canal_venda'],
             filters: {},
-            order_by: 'canal_venda'
+            order_by: [{ field: 'canal_venda', direction: 'asc' }]
           })
         });
         const channelsData = await channelsRes.json();
@@ -103,7 +103,7 @@ export const useFilters = () => {
             metrics: [],
             dimensions: ['nome_loja'],
             filters: {},
-            order_by: 'nome_loja'
+            order_by: [{ field: 'nome_loja', direction: 'asc' }]
           })
         });
         const storesData = await storesRes.json();
@@ -121,7 +121,7 @@ export const useFilters = () => {
             metrics: ['SUM(quantidade) as total_vendido'],
             dimensions: ['nome_produto'],
             filters: {},
-            order_by: 'total_vendido',
+            order_by: [{ field: 'total_vendido', direction: 'desc' }],
             limit: 100
           })
         });
