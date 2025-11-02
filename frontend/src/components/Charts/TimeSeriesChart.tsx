@@ -64,6 +64,14 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
       const dimension = getTemporalDimension();
       const dates = data.data.map((row: any) => row[dimension]);
       
+      console.log('📊 Time Series Data:', {
+        granularity,
+        dimension,
+        dataLength: data.data.length,
+        dates: dates,
+        firstRow: data.data[0]
+      });
+      
       // Separar métricas por escala
       const monetaryMetrics = ['faturamento', 'ticket_medio'];
       const countMetrics = ['qtd_vendas', 'clientes_unicos'];
@@ -167,8 +175,17 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
           axisLabel: {
             rotate: 45,
             formatter: (value: string) => {
-              if (granularity === 'day') {
+              if (granularity === 'day' && value.includes('-')) {
+                // Formato: 2025-05-05
                 return new Date(value).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+              } else if (granularity === 'week') {
+                // Formato: 2025-19 (semana)
+                return `Sem ${value.split('-')[1]}`;
+              } else if (granularity === 'month') {
+                // Formato: 2025-05 (mês)
+                const [year, month] = value.split('-');
+                const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                return `${monthNames[parseInt(month) - 1]}/${year}`;
               }
               return value;
             }
@@ -311,6 +328,12 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
       {data?.data && data.data.length === 0 && (
         <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
           <p>Nenhum dado disponível para o período selecionado</p>
+        </div>
+      )}
+      
+      {data?.data && data.data.length > 0 && data.data.length < 3 && (
+        <div style={{ textAlign: 'center', padding: '10px', color: '#faad14', fontSize: '12px' }}>
+          ⚠️ Poucos pontos de dados para esta granularidade ({data.data.length} {granularity === 'day' ? 'dias' : granularity === 'week' ? 'semanas' : 'meses'})
         </div>
       )}
     </Card>
