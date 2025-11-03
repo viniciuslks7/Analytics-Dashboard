@@ -1,0 +1,65 @@
+/* Churn Dashboard Styles */
+.churn-dashboard {
+  padding: 24px;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+}
+
+.churn-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.churn-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  margin: 0;
+  color: #262626;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.churn-header .subtitle {
+  font-size: 14px;
+  color: #8c8c8c;
+  margin: 4px 0 0 0;
+}
+
+.churn-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.churn-filters label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #595959;
+}
+
+.churn-kpis {
+  margin-bottom: 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .churn-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .churn-filters {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .churn-filters > * {
+    width: 100%;
+  }
+}

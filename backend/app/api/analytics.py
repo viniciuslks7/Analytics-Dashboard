@@ -15,6 +15,7 @@ from app.models.schemas import (
     PeriodComparisonResponse
 )
 from app.services.analytics_service import analytics_service
+from app.services.churn_service import churn_service
 from app.db.database import db
 
 logger = logging.getLogger(__name__)
@@ -285,3 +286,94 @@ async def get_regions():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy", "service": "analytics-api"}
+
+
+# ============================================================================
+# CHURN ANALYSIS ENDPOINTS
+# ============================================================================
+
+@router.get("/churn/metrics")
+async def get_churn_metrics(
+    days_inactive: int = Query(30, description="Days to consider customer as inactive")
+):
+    """
+    Get overall churn metrics
+    
+    Returns churn rate, at-risk customers, value at risk, etc.
+    """
+    try:
+        logger.debug(f"📊 Churn Metrics Request: days_inactive={days_inactive}")
+        result = await churn_service.get_churn_metrics(days_inactive=days_inactive)
+        logger.debug(f"✅ Churn Metrics Success: {result['churn_rate']}% churn rate")
+        return result
+    except Exception as e:
+        logger.error(f"❌ Churn Metrics Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Churn metrics error: {str(e)}")
+
+
+@router.get("/churn/at-risk")
+async def get_at_risk_customers(
+    min_purchases: int = Query(2, description="Minimum purchases to consider"),
+    days_inactive: int = Query(30, description="Days since last purchase"),
+    limit: int = Query(100, description="Maximum results")
+):
+    """
+    Get list of customers at risk of churning
+    
+    Returns customers who haven't purchased recently but have good purchase history
+    """
+    try:
+        logger.debug(f"📊 At-Risk Customers Request: min_purchases={min_purchases}, days_inactive={days_inactive}")
+        result = await churn_service.get_at_risk_customers(
+            min_purchases=min_purchases,
+            days_inactive=days_inactive,
+            limit=limit
+        )
+        logger.debug(f"✅ At-Risk Customers Success: {len(result)} customers found")
+        return {"customers": result, "total": len(result)}
+    except Exception as e:
+        logger.error(f"❌ At-Risk Customers Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"At-risk customers error: {str(e)}")
+
+
+@router.get("/churn/rfm-segments")
+async def get_rfm_segmentation():
+    """
+    Get RFM (Recency, Frequency, Monetary) segmentation data
+    
+    Returns customer segments based on RFM scores
+    """
+    try:
+        logger.debug("📊 RFM Segmentation Request")
+        result = await churn_service.get_rfm_segmentation()
+        logger.debug(f"✅ RFM Segmentation Success: {len(result)} segments found")
+        return {"segments": result, "total": len(result)}
+    except Exception as e:
+        logger.error(f"❌ RFM Segmentation Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"RFM segmentation error: {str(e)}")
+
+
+@router.get("/churn/trend")
+async def get_churn_trend(
+    start_date: Optional[date] = Query(None, description="Start date for trend analysis"),
+    end_date: Optional[date] = Query(None, description="End date for trend analysis"),
+    granularity: str = Query('week', description="Granularity: day, week, or month")
+):
+    """
+    Get churn trend over time
+    
+    Returns churn metrics by time period
+    """
+    try:
+        logger.debug(f"📊 Churn Trend Request: start={start_date}, end={end_date}, granularity={granularity}")
+        result = await churn_service.get_churn_trend(
+            start_date=start_date,
+            end_date=end_date,
+            granularity=granularity
+        )
+        logger.debug(f"✅ Churn Trend Success: {len(result)} periods analyzed")
+        return {"data": result, "total": len(result)}
+    except Exception as e:
+        logger.error(f"❌ Churn Trend Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Churn trend error: {str(e)}")
+
