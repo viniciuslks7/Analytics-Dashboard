@@ -54,6 +54,7 @@ async def execute_analytics_query(request: AnalyticsQueryRequest):
         for metric in request.metrics:
             # Allow custom SQL metrics only if they match pattern "FUNCTION(column) as alias"
             if metric not in allowed_metrics and not _is_safe_custom_metric(metric):
+                logger.error(f"❌ Invalid metric rejected: '{metric}'")
                 raise HTTPException(
                     status_code=400, 
                     detail=f"Invalid metric '{metric}'. Use only predefined metrics or safe aggregations."
@@ -83,10 +84,21 @@ def _is_safe_custom_metric(metric: str) -> bool:
     """
     Validate custom metric follows safe pattern: FUNCTION(table.column) as alias
     Allowed functions: SUM, AVG, COUNT, MIN, MAX
+    Also allows COUNT(DISTINCT table.column) pattern
     """
     import re
-    pattern = r'^(SUM|AVG|COUNT|MIN|MAX)\([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*\)\s+as\s+[a-zA-Z_][a-zA-Z0-9_]*$'
-    return bool(re.match(pattern, metric, re.IGNORECASE))
+    # Pattern 1: FUNCTION(table.column) as alias
+    pattern1 = r'^(SUM|AVG|COUNT|MIN|MAX)\([a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*\)\s+as\s+[a-zA-Z_][a-zA-Z0-9_]*$'
+    # Pattern 2: COUNT(DISTINCT table.column) as alias
+    pattern2 = r'^COUNT\(DISTINCT\s+[a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*\)\s+as\s+[a-zA-Z_][a-zA-Z0-9_]*$'
+    # Pattern 3: Simple aggregations without table prefix: SUM(column_name)
+    pattern3 = r'^(SUM|AVG|COUNT|MIN|MAX)\([a-zA-Z_][a-zA-Z0-9_]*\)\s+as\s+[a-zA-Z_][a-zA-Z0-9_]*$'
+    
+    return bool(
+        re.match(pattern1, metric, re.IGNORECASE) or 
+        re.match(pattern2, metric, re.IGNORECASE) or
+        re.match(pattern3, metric, re.IGNORECASE)
+    )
 
 
 @router.get("/kpis", response_model=KPIDashboard)
