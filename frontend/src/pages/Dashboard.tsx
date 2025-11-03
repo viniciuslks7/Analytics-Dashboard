@@ -5,7 +5,6 @@ import KPICard from '../components/KPICard';
 import FilterPanel from '../components/Filters/FilterPanel';
 import { PeriodComparison } from '../components/PeriodComparison';
 import { DataTable } from '../components/DataTable';
-import { QueryBuilder } from '../components/QueryBuilder';
 import { useFilters, getAPIFilters } from '../hooks/useFilters';
 import { 
   SalesChannelChart, 
@@ -97,11 +96,6 @@ const Dashboard: React.FC = () => {
       {/* Tabela Dinâmica */}
       <section className="table-section">
         <DataTable filters={apiFilters} />
-      </section>
-
-      {/* Query Builder */}
-      <section className="query-builder-section">
-        <QueryBuilder />
       </section>
 
       {kpiData?.metadata && (
