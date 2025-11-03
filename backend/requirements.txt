@@ -20,6 +20,9 @@ python-multipart==0.0.6
 # pandas==2.1.3  # Removed: incompatible with Python 3.14
 # numpy==1.26.2  # Removed: dependency of pandas
 
+# Cache
+redis>=5.0.0
+
 # Development
 pytest==7.4.3
 httpx==0.25.2

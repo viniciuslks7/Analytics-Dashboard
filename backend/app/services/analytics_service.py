@@ -6,6 +6,8 @@ from datetime import datetime, date
 import time
 
 from app.db.database import db
+from app.cache.redis_client import redis_cache
+from app.config import settings
 from app.models.schemas import (
     AnalyticsQueryRequest, 
     AnalyticsQueryResponse,
@@ -85,6 +87,16 @@ class AnalyticsService:
         """Execute analytics query based on request"""
         start_time = time.time()
         
+        # ✅ Tentar buscar do cache primeiro
+        cache_key_data = request.model_dump(exclude_none=True)
+        cached_result = await redis_cache.get("analytics:query", cache_key_data)
+        
+        if cached_result:
+            # Cache HIT - retornar dados cacheados
+            cached_result["metadata"]["from_cache"] = True
+            cached_result["metadata"]["query_time_ms"] = (time.time() - start_time) * 1000
+            return AnalyticsQueryResponse(**cached_result)
+        
         # Extract date filters from filters dict and move to date_range
         if 'data_venda_gte' in request.filters or 'data_venda_lte' in request.filters:
             from datetime import datetime
@@ -127,10 +139,22 @@ class AnalyticsService:
         metadata = QueryMetadata(
             total_rows=len(data),
             query_time_ms=round(query_time_ms, 2),
-            cached=False
+            cached=False,
+            from_cache=False
         )
         
-        return AnalyticsQueryResponse(data=data, metadata=metadata)
+        # Criar resposta
+        response = AnalyticsQueryResponse(data=data, metadata=metadata)
+        
+        # ✅ Salvar no cache (async, sem esperar)
+        await redis_cache.set(
+            "analytics:query", 
+            cache_key_data, 
+            response.model_dump(),
+            ttl=settings.CACHE_TTL
+        )
+        
+        return response
     
     def _build_query(self, request: AnalyticsQueryRequest) -> tuple[str, list]:
         """Build SQL query from request"""

@@ -16,6 +16,7 @@ from app.models.schemas import (
 )
 from app.services.analytics_service import analytics_service
 from app.services.churn_service import churn_service
+from app.cache.redis_client import redis_cache
 from app.db.database import db
 
 logger = logging.getLogger(__name__)
@@ -376,4 +377,111 @@ async def get_churn_trend(
     except Exception as e:
         logger.error(f"❌ Churn Trend Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Churn trend error: {str(e)}")
+
+
+# ============================================================================
+# CACHE MANAGEMENT ENDPOINTS
+# ============================================================================
+
+@router.get("/cache/stats")
+async def get_cache_stats():
+    """
+    Get Redis cache statistics
+    
+    Returns:
+    - Memory usage
+    - Total keys
+    - Hit rate (if available)
+    - Connected clients
+    - Uptime
+    
+    Example response:
+    ```json
+    {
+        "memory_used_mb": 2.45,
+        "total_keys": 1234,
+        "hit_rate": 0.87,
+        "connected_clients": 5,
+        "uptime_seconds": 86400
+    }
+    ```
+    """
+    try:
+        stats = await redis_cache.get_stats()
+        logger.info(f"📊 Cache Stats: {stats.get('total_keys', 0)} keys, {stats.get('memory_used_mb', 0):.2f} MB")
+        return stats
+    except Exception as e:
+        logger.error(f"❌ Cache Stats Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to get cache stats: {str(e)}")
+
+
+@router.post("/cache/clear")
+async def clear_cache(
+    pattern: str = Query(default="analytics:*", description="Pattern to match keys (e.g., 'analytics:*', 'analytics:query:*')")
+):
+    """
+    Clear cache keys matching pattern
+    
+    Parameters:
+    - pattern: Redis key pattern (default: "analytics:*")
+    
+    Common patterns:
+    - "analytics:*" - Clear all analytics cache
+    - "analytics:query:*" - Clear only query cache
+    - "*" - Clear entire cache (use with caution!)
+    
+    Example response:
+    ```json
+    {
+        "deleted": 42,
+        "pattern": "analytics:query:*",
+        "message": "Successfully deleted 42 keys"
+    }
+    ```
+    """
+    try:
+        deleted = await redis_cache.clear_pattern(pattern)
+        logger.info(f"🗑️ Cache Cleared: {deleted} keys deleted (pattern: {pattern})")
+        return {
+            "deleted": deleted,
+            "pattern": pattern,
+            "message": f"Successfully deleted {deleted} keys"
+        }
+    except Exception as e:
+        logger.error(f"❌ Cache Clear Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to clear cache: {str(e)}")
+
+
+@router.delete("/cache/key")
+async def delete_cache_key(
+    prefix: str = Query(..., description="Cache key prefix (e.g., 'analytics:query')"),
+    data: str = Query(..., description="JSON string of data used to generate cache key")
+):
+    """
+    Delete specific cache key
+    
+    Parameters:
+    - prefix: Cache key prefix
+    - data: JSON string of data used to generate the cache key
+    
+    Example:
+    ```
+    DELETE /api/v1/analytics/cache/key?prefix=analytics:query&data={"metrics":["faturamento"]}
+    ```
+    """
+    try:
+        import json
+        data_dict = json.loads(data)
+        await redis_cache.delete(prefix, data_dict)
+        logger.info(f"🗑️ Cache Key Deleted: {prefix} with data {data[:50]}...")
+        return {
+            "message": "Cache key deleted successfully",
+            "prefix": prefix
+        }
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON in data parameter")
+    except Exception as e:
+        logger.error(f"❌ Cache Delete Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to delete cache key: {str(e)}")
+
 

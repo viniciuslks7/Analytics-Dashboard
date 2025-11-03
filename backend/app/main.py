@@ -14,6 +14,7 @@ if sys.platform == 'win32':
 
 from app.config import settings
 from app.db.database import db
+from app.cache.redis_client import redis_cache
 from app.api import analytics, alerts
 
 # Configure logging
@@ -30,9 +31,12 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("🚀 Starting Restaurant Analytics API...")
     await db.connect()
+    await redis_cache.connect()
+    logger.info("✅ Redis cache connected")
     yield
     # Shutdown
     logger.info("🔴 Shutting down Restaurant Analytics API...")
+    await redis_cache.disconnect()
     await db.disconnect()
 
 

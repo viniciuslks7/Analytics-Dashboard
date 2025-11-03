@@ -11,6 +11,10 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "postgresql://challenge:challenge@localhost:5432/challenge_db"
     
+    # Cache
+    REDIS_URL: str = "redis://localhost:6379/0"
+    CACHE_TTL: int = 300  # 5 minutos
+    
     # API
     API_TITLE: str = "Restaurant Analytics API"
     API_VERSION: str = "1.0.0"
