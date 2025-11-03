@@ -65,6 +65,7 @@ export const DrillDownModal = ({ visible, onClose, context }: DrillDownModalProp
       width={1200}
       footer={null}
       className="drill-down-modal"
+      destroyOnClose={true}
     >
       {currentContext && (
         <>

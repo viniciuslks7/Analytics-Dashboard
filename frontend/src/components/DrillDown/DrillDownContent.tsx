@@ -36,7 +36,6 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
         break;
     }
     
-    console.log('🔍 Drill-down filters:', baseFilters);
     return baseFilters;
   }, [context.type, context.value, context.filters]);
 
@@ -52,7 +51,6 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
         dimensions: [],
         filters: filters,
       });
-      console.log('📊 Metrics data:', result);
       return result;
     },
     staleTime: 0, // Sempre considerar dados como stale para revalidar
@@ -107,27 +105,17 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
   const productsChartInstance = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
-    console.log('📊 Products chart effect:', { 
-      hasRef: !!productsChartRef.current, 
-      loading: productsLoading, 
-      hasData: !!productsData?.data,
-      dataLength: productsData?.data?.length 
-    });
-    
     if (productsLoading || !productsData?.data || productsData.data.length === 0) {
-      console.log('📊 Products chart: skipping render (loading or no data)');
       return;
     }
 
     // Retry se o ref não estiver pronto ainda
     if (!productsChartRef.current) {
-      console.log('📊 Products chart: ref not ready, retrying in 50ms');
       const timer = setTimeout(() => {
         if (productsChartRef.current && !productsChartInstance.current) {
           productsChartInstance.current = echarts.init(productsChartRef.current);
           const products = productsData.data.map((row: any) => row.nome_produto || 'Desconhecido');
           const values = productsData.data.map((row: any) => Number(row.faturamento) || 0);
-          console.log('📊 Products chart data (delayed):', { products, values });
           
           const option = {
             tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
@@ -143,16 +131,11 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
     }
 
     if (!productsChartInstance.current) {
-      console.log('📊 Products chart: creating new instance');
       productsChartInstance.current = echarts.init(productsChartRef.current);
-    } else {
-      console.log('📊 Products chart: reusing existing instance');
     }
 
     const products = productsData.data.map((row: any) => row.nome_produto || 'Desconhecido');
     const values = productsData.data.map((row: any) => Number(row.faturamento) || 0);
-
-    console.log('📊 Products chart data:', { products, values });
 
     const baseTheme = getEChartsTheme(theme);
     const option: echarts.EChartsOption = {
@@ -206,27 +189,17 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
   const hoursChartInstance = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
-    console.log('⏰ Hours chart effect:', { 
-      hasRef: !!hoursChartRef.current, 
-      loading: hoursLoading, 
-      hasData: !!hoursData?.data,
-      dataLength: hoursData?.data?.length 
-    });
-    
     if (hoursLoading || !hoursData?.data || hoursData.data.length === 0) {
-      console.log('⏰ Hours chart: skipping render (loading or no data)');
       return;
     }
 
     // Retry se o ref não estiver pronto ainda
     if (!hoursChartRef.current) {
-      console.log('⏰ Hours chart: ref not ready, retrying in 50ms');
       const timer = setTimeout(() => {
         if (hoursChartRef.current && !hoursChartInstance.current) {
           hoursChartInstance.current = echarts.init(hoursChartRef.current);
           const hours = hoursData.data.map((row: any) => `${row.hora}h`);
           const quantities = hoursData.data.map((row: any) => Number(row.qtd_vendas) || 0);
-          console.log('⏰ Hours chart data (delayed):', { hours, quantities });
           
           const option = {
             tooltip: { trigger: 'axis' },
@@ -242,16 +215,11 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
     }
 
     if (!hoursChartInstance.current) {
-      console.log('⏰ Hours chart: creating new instance');
       hoursChartInstance.current = echarts.init(hoursChartRef.current);
-    } else {
-      console.log('⏰ Hours chart: reusing existing instance');
     }
 
     const hours = hoursData.data.map((row: any) => `${row.hora}h`);
     const quantities = hoursData.data.map((row: any) => Number(row.qtd_vendas) || 0);
-
-    console.log('⏰ Hours chart data:', { hours, quantities });
 
     const baseTheme = getEChartsTheme(theme);
     const option: echarts.EChartsOption = {
@@ -300,28 +268,18 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
   const timelineChartInstance = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
-    console.log('📈 Timeline chart effect:', { 
-      hasRef: !!timelineChartRef.current, 
-      loading: timelineLoading, 
-      hasData: !!timelineData?.data,
-      dataLength: timelineData?.data?.length 
-    });
-    
     if (timelineLoading || !timelineData?.data || timelineData.data.length === 0) {
-      console.log('📈 Timeline chart: skipping render (loading or no data)');
       return;
     }
 
     // Retry se o ref não estiver pronto ainda
     if (!timelineChartRef.current) {
-      console.log('📈 Timeline chart: ref not ready, retrying in 50ms');
       const timer = setTimeout(() => {
         if (timelineChartRef.current && !timelineChartInstance.current) {
           timelineChartInstance.current = echarts.init(timelineChartRef.current);
           const dates = timelineData.data.map((row: any) => new Date(row.data_venda).toLocaleDateString('pt-BR'));
           const revenues = timelineData.data.map((row: any) => Number(row.faturamento) || 0);
           const quantities = timelineData.data.map((row: any) => Number(row.qtd_vendas) || 0);
-          console.log('📈 Timeline chart data (delayed):', { dates, revenues, quantities });
           
           const option = {
             tooltip: { trigger: 'axis' },
@@ -344,17 +302,12 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
     }
 
     if (!timelineChartInstance.current) {
-      console.log('📈 Timeline chart: creating new instance');
       timelineChartInstance.current = echarts.init(timelineChartRef.current);
-    } else {
-      console.log('📈 Timeline chart: reusing existing instance');
     }
 
     const dates = timelineData.data.map((row: any) => new Date(row.data_venda).toLocaleDateString('pt-BR'));
     const revenues = timelineData.data.map((row: any) => Number(row.faturamento) || 0);
     const quantities = timelineData.data.map((row: any) => Number(row.qtd_vendas) || 0);
-
-    console.log('📈 Timeline chart data:', { dates, revenues, quantities });
 
     const baseTheme = getEChartsTheme(theme);
     const option: echarts.EChartsOption = {
@@ -422,7 +375,6 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
   // Cleanup dos gráficos quando o componente desmonta
   useEffect(() => {
     return () => {
-      console.log('🧹 Cleaning up charts...');
       if (productsChartInstance.current) {
         productsChartInstance.current.dispose();
         productsChartInstance.current = null;
