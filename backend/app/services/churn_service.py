@@ -95,7 +95,7 @@ class ChurnService:
         query = f"""
         SELECT 
             s.customer_id,
-            c.name as customer_name,
+            COALESCE(c.customer_name, s.customer_name) as customer_name,
             COUNT(DISTINCT s.id) as total_purchases,
             SUM(s.total_amount) as lifetime_value,
             AVG(s.total_amount) as avg_order_value,
@@ -105,7 +105,7 @@ class ChurnService:
         FROM sales s
         LEFT JOIN customers c ON s.customer_id = c.id
         LEFT JOIN stores st ON s.store_id = st.id
-        GROUP BY s.customer_id, c.name
+        GROUP BY s.customer_id, c.customer_name, s.customer_name
         HAVING 
             COUNT(*) >= {min_purchases}
             AND CURRENT_DATE - MAX(s.created_at::date) BETWEEN {days_inactive // 2} AND {days_inactive}
@@ -142,6 +142,28 @@ class ChurnService:
             List of customer segments with RFM scores
         """
         query = """
+        WITH customer_metrics AS (
+            SELECT 
+                customer_id,
+                CURRENT_DATE - MAX(created_at::date) as recency,
+                COUNT(*) as frequency,
+                SUM(total_amount) as monetary
+            FROM sales
+            WHERE customer_id IS NOT NULL
+            GROUP BY customer_id
+        ),
+        rfm_scores AS (
+            SELECT 
+                customer_id,
+                recency,
+                frequency,
+                monetary,
+                -- Calculate RFM scores (1-5, where 5 is best)
+                NTILE(5) OVER (ORDER BY recency DESC) as recency_score,
+                NTILE(5) OVER (ORDER BY frequency ASC) as frequency_score,
+                NTILE(5) OVER (ORDER BY monetary ASC) as monetary_score
+            FROM customer_metrics
+        )
         SELECT 
             recency_score,
             frequency_score,
@@ -159,7 +181,7 @@ class ChurnService:
                 WHEN recency_score <= 1 THEN 'Lost'
                 ELSE 'Potential'
             END as segment_name
-        FROM customer_rfm
+        FROM rfm_scores
         GROUP BY recency_score, frequency_score, monetary_score
         ORDER BY recency_score DESC, frequency_score DESC, monetary_score DESC
         """
