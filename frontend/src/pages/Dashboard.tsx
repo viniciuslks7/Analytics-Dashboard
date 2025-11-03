@@ -8,7 +8,6 @@ import { DataTable } from '../components/DataTable';
 import { ExportButton } from '../components/Export';
 import { DashboardManager } from '../components/DashboardManager';
 import { useFilters, getAPIFilters } from '../hooks/useFilters';
-import { useDashboardStore } from '../stores/dashboardStore';
 import { 
   SalesChannelChart, 
   TopProductsChart, 
