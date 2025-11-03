@@ -42,13 +42,13 @@ export const RFMScatterChart = ({ data, loading }: RFMScatterChartProps) => {
 
       // Color mapping
       const colorMap: Record<string, string> = {
-        'Champions': '#52c41a',
-        'Loyal Customers': '#73d13d',
-        'Promising': '#95de64',
-        'Potential': '#fadb14',
-        'At Risk': '#fa8c16',
-        'Hibernating': '#d4380d',
-        'Lost': '#cf1322'
+        'Campeões': '#52c41a',
+        'Clientes Fiéis': '#73d13d',
+        'Promissores': '#95de64',
+        'Potenciais': '#fadb14',
+        'Em Risco': '#fa8c16',
+        'Hibernando': '#d4380d',
+        'Perdidos': '#cf1322'
       };
 
       const series = Array.from(segmentMap.entries()).map(([name, points]) => ({

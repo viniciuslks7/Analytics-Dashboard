@@ -95,7 +95,7 @@ class ChurnService:
         query = f"""
         SELECT 
             s.customer_id,
-            COALESCE(c.customer_name, s.customer_name) as customer_name,
+            COALESCE(c.customer_name, s.customer_name, 'Cliente #' || s.customer_id) as customer_name,
             COUNT(DISTINCT s.id) as total_purchases,
             SUM(s.total_amount) as lifetime_value,
             AVG(s.total_amount) as avg_order_value,
@@ -105,11 +105,11 @@ class ChurnService:
         FROM sales s
         LEFT JOIN customers c ON s.customer_id = c.id
         LEFT JOIN stores st ON s.store_id = st.id
+        WHERE s.customer_id IS NOT NULL
         GROUP BY s.customer_id, c.customer_name, s.customer_name
         HAVING 
             COUNT(*) >= {min_purchases}
-            AND CURRENT_DATE - MAX(s.created_at::date) BETWEEN {days_inactive // 2} AND {days_inactive}
-        ORDER BY lifetime_value DESC
+        ORDER BY MAX(s.created_at) DESC, lifetime_value DESC
         LIMIT {limit}
         """
         
@@ -173,13 +173,13 @@ class ChurnService:
             ROUND(AVG(frequency)::numeric, 2) as avg_frequency,
             ROUND(AVG(monetary)::numeric, 2) as avg_monetary,
             CASE 
-                WHEN recency_score >= 4 AND frequency_score >= 4 THEN 'Champions'
-                WHEN recency_score >= 3 AND frequency_score >= 3 THEN 'Loyal Customers'
-                WHEN recency_score >= 4 AND frequency_score <= 2 THEN 'Promising'
-                WHEN recency_score <= 2 AND frequency_score >= 4 THEN 'At Risk'
-                WHEN recency_score <= 2 AND frequency_score <= 2 THEN 'Hibernating'
-                WHEN recency_score <= 1 THEN 'Lost'
-                ELSE 'Potential'
+                WHEN recency_score >= 4 AND frequency_score >= 4 THEN 'Campeões'
+                WHEN recency_score >= 3 AND frequency_score >= 3 THEN 'Clientes Fiéis'
+                WHEN recency_score >= 4 AND frequency_score <= 2 THEN 'Promissores'
+                WHEN recency_score <= 2 AND frequency_score >= 4 THEN 'Em Risco'
+                WHEN recency_score <= 2 AND frequency_score <= 2 THEN 'Hibernando'
+                WHEN recency_score <= 1 THEN 'Perdidos'
+                ELSE 'Potenciais'
             END as segment_name
         FROM rfm_scores
         GROUP BY recency_score, frequency_score, monetary_score

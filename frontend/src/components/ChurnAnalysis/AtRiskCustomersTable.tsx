@@ -186,19 +186,35 @@ export const AtRiskCustomersTable = ({ data, loading }: AtRiskCustomersTableProp
       }
       loading={loading}
     >
-      <Table
-        columns={columns}
-        dataSource={data}
-        rowKey="customer_id"
-        pagination={{
-          pageSize: 10,
-          showSizeChanger: true,
-          showTotal: (total) => `Total de ${total} clientes em risco`,
-          pageSizeOptions: ['10', '25', '50', '100']
-        }}
-        scroll={{ x: 1200 }}
-        size="small"
-      />
+      {data.length === 0 ? (
+        <div style={{ 
+          textAlign: 'center', 
+          padding: '40px 20px',
+          color: '#8c8c8c' 
+        }}>
+          <WarningOutlined style={{ fontSize: '48px', marginBottom: '16px', opacity: 0.3 }} />
+          <h3>Nenhum cliente em risco no período selecionado</h3>
+          <p>
+            Ajuste os filtros acima para ver clientes que não realizaram compras recentemente.
+            <br />
+            Os dados mostram os clientes mais recentes com base nos critérios selecionados.
+          </p>
+        </div>
+      ) : (
+        <Table
+          columns={columns}
+          dataSource={data}
+          rowKey="customer_id"
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showTotal: (total) => `Total de ${total} clientes em risco`,
+            pageSizeOptions: ['10', '25', '50', '100']
+          }}
+          scroll={{ x: 1200 }}
+          size="small"
+        />
+      )}
     </Card>
   );
 };
