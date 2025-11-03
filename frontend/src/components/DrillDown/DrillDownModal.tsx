@@ -1,7 +1,7 @@
-import { Modal, Breadcrumb, Spin, Alert } from 'antd';
+import { Modal, Breadcrumb } from 'antd';
 import { HomeOutlined } from '@ant-design/icons';
 import { useState } from 'react';
-import { DrillDownContent } from './DrillDownContent';
+import { DrillDownContent } from './DrillDownContent.tsx';
 import './DrillDownModal.css';
 
 export interface DrillDownContext {
@@ -20,7 +20,7 @@ interface DrillDownModalProps {
 export const DrillDownModal = ({ visible, onClose, context }: DrillDownModalProps) => {
   const [breadcrumbs, setBreadcrumbs] = useState<DrillDownContext[]>([]);
 
-  const handleDrillDeeper = (newContext: DrillDownContext) => {
+  const handleDrillDeeper = (_newContext: DrillDownContext) => {
     setBreadcrumbs([...breadcrumbs, context!]);
     // Aqui você poderia navegar para um nível mais profundo
   };

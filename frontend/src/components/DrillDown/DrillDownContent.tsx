@@ -1,8 +1,8 @@
-import { Row, Col, Card, Statistic, Spin, Alert } from 'antd';
-import { ArrowUpOutlined, ArrowDownOutlined, ShoppingOutlined, DollarOutlined, ClockCircleOutlined, UserOutlined } from '@ant-design/icons';
+import { Row, Col, Card, Statistic, Spin } from 'antd';
+import { ShoppingOutlined, DollarOutlined, UserOutlined } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
-import { DrillDownContext } from './DrillDownModal';
+import type { DrillDownContext } from './DrillDownModal';
 import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 import { useTheme } from '../../hooks/useTheme';
@@ -13,7 +13,7 @@ interface DrillDownContentProps {
   onDrillDeeper: (context: DrillDownContext) => void;
 }
 
-export const DrillDownContent = ({ context, onDrillDeeper }: DrillDownContentProps) => {
+export const DrillDownContent = ({ context }: DrillDownContentProps) => {
   const { theme } = useTheme();
   
   // Construir filtros baseado no contexto

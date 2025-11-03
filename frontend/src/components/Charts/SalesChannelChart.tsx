@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
 import { useTheme } from '../../hooks/useTheme';
 import { getEChartsTheme } from '../../styles/theme';
-import { DrillDownModal, DrillDownContext } from '../DrillDown';
+import { DrillDownModal } from '../DrillDown';
+import type { DrillDownContext } from '../DrillDown';
 
 interface SalesChannelChartProps {
   filters?: Record<string, any>;
