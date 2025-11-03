@@ -84,7 +84,7 @@ def _is_safe_custom_metric(metric: str) -> bool:
     """
     Validate custom metric follows safe pattern: FUNCTION(table.column) as alias
     Allowed functions: SUM, AVG, COUNT, MIN, MAX
-    Also allows COUNT(DISTINCT table.column) pattern
+    Also allows COUNT(DISTINCT table.column) and COUNT(DISTINCT column) patterns
     """
     import re
     # Pattern 1: FUNCTION(table.column) as alias
@@ -93,11 +93,14 @@ def _is_safe_custom_metric(metric: str) -> bool:
     pattern2 = r'^COUNT\(DISTINCT\s+[a-zA-Z_][a-zA-Z0-9_]*\.[a-zA-Z_][a-zA-Z0-9_]*\)\s+as\s+[a-zA-Z_][a-zA-Z0-9_]*$'
     # Pattern 3: Simple aggregations without table prefix: SUM(column_name)
     pattern3 = r'^(SUM|AVG|COUNT|MIN|MAX)\([a-zA-Z_][a-zA-Z0-9_]*\)\s+as\s+[a-zA-Z_][a-zA-Z0-9_]*$'
+    # Pattern 4: COUNT(DISTINCT column_name) as alias (without table prefix)
+    pattern4 = r'^COUNT\(DISTINCT\s+[a-zA-Z_][a-zA-Z0-9_]*\)\s+as\s+[a-zA-Z_][a-zA-Z0-9_]*$'
     
     return bool(
         re.match(pattern1, metric, re.IGNORECASE) or 
         re.match(pattern2, metric, re.IGNORECASE) or
-        re.match(pattern3, metric, re.IGNORECASE)
+        re.match(pattern3, metric, re.IGNORECASE) or
+        re.match(pattern4, metric, re.IGNORECASE)
     )
 
 
