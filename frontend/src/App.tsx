@@ -4,7 +4,7 @@ import { ConfigProvider, Layout, Menu, Switch, theme as antdTheme } from 'antd';
 import { DashboardOutlined, UserDeleteOutlined, BulbOutlined, BulbFilled, BellOutlined } from '@ant-design/icons';
 import Dashboard from './pages/Dashboard';
 import { ChurnDashboard } from './pages/ChurnDashboard';
-import { AlertsPage } from './pages/AlertsPage';
+import { AlertsPage } from './pages/AlertsPage.tsx';
 import { AlertNotification } from './components/Alerts';
 import { useTheme } from './hooks/useTheme';
 import { lightTheme, darkTheme } from './styles/theme';

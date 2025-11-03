@@ -1,3 +1,3 @@
-export { AlertManager } from './AlertManager';
-export { CreateAlertModal } from './CreateAlertModal';
-export { AlertNotification, useAlertCheck } from './AlertNotification';
+export { AlertManager } from './AlertManager.tsx';
+export { CreateAlertModal } from './CreateAlertModal.tsx';
+export { AlertNotification, useAlertCheck } from './AlertNotification.tsx';

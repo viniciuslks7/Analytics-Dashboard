@@ -118,9 +118,9 @@ async def check_alerts_with_current_data():
     """
     try:
         # Buscar métricas atuais do sistema
-        from app.models.analytics import QueryRequest
+        from app.models.schemas import AnalyticsQueryRequest
         
-        query_request = QueryRequest(
+        query_request = AnalyticsQueryRequest(
             metrics=["faturamento", "ticket_medio", "qtd_vendas", "tempo_medio_entrega"],
             dimensions=[]
         )

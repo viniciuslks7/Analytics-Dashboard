@@ -4,7 +4,7 @@ import { PlusOutlined, EditOutlined, DeleteOutlined, BellOutlined, CheckCircleOu
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { alertsAPI } from '../../api/alerts';
 import type { Alert } from '../../api/alerts';
-import { CreateAlertModal } from './CreateAlertModal';
+import { CreateAlertModal } from './CreateAlertModal.tsx';
 import type { ColumnsType } from 'antd/es/table';
 
 export const AlertManager = () => {
