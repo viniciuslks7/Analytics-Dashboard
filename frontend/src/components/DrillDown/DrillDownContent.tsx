@@ -3,7 +3,7 @@ import { ShoppingOutlined, DollarOutlined, UserOutlined } from '@ant-design/icon
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
 import type { DrillDownContext } from './DrillDownModal';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import * as echarts from 'echarts';
 import { useTheme } from '../../hooks/useTheme';
 import { getEChartsTheme } from '../../styles/theme';
@@ -16,35 +16,36 @@ interface DrillDownContentProps {
 export const DrillDownContent = ({ context }: DrillDownContentProps) => {
   const { theme } = useTheme();
   
-  // Construir filtros baseado no contexto
-  const getDrillDownFilters = () => {
-    const filters: Record<string, any> = { ...context.filters };
+  // Usar useMemo para memoizar os filtros e evitar recriação desnecessária
+  const filters = useMemo(() => {
+    const baseFilters: Record<string, any> = { ...context.filters };
     
     switch (context.type) {
       case 'channel':
         // Backend espera array para filtros IN
-        filters.canal_venda = [context.value];
+        baseFilters.canal_venda = [context.value];
         break;
       case 'product':
-        filters.nome_produto = [context.value];
+        baseFilters.nome_produto = [context.value];
         break;
       case 'neighborhood':
-        filters.bairro = [context.value];
+        baseFilters.bairro = [context.value];
         break;
       case 'segment':
         // Para segmentos, não temos filtro direto, mas podemos mostrar dados gerais
         break;
     }
     
-    console.log('🔍 Drill-down filters:', filters);
-    return filters;
-  };
+    console.log('🔍 Drill-down filters:', baseFilters);
+    return baseFilters;
+  }, [context.type, context.value, context.filters]);
 
-  const filters = getDrillDownFilters();
+  // Serializar filtros para usar como chave única
+  const filtersKey = useMemo(() => JSON.stringify(filters), [filters]);
 
   // Query para métricas principais
   const { data: metricsData, isLoading: metricsLoading } = useQuery({
-    queryKey: ['drill-down-metrics', context.type, context.value, filters],
+    queryKey: ['drill-down-metrics', context.type, context.value, filtersKey],
     queryFn: async () => {
       const result = await analyticsAPI.query({
         metrics: ['faturamento', 'qtd_vendas', 'ticket_medio', 'clientes_unicos'],
@@ -54,11 +55,13 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
       console.log('📊 Metrics data:', result);
       return result;
     },
+    staleTime: 0, // Sempre considerar dados como stale para revalidar
+    gcTime: 0, // Não manter cache após unmount (cacheTime no React Query v4)
   });
 
   // Query para produtos (se não for drill-down de produto)
   const { data: productsData, isLoading: productsLoading } = useQuery({
-    queryKey: ['drill-down-products', context.type, context.value, filters],
+    queryKey: ['drill-down-products', context.type, context.value, filtersKey],
     queryFn: () => analyticsAPI.query({
       metrics: ['qtd_vendas', 'faturamento'],
       dimensions: ['nome_produto'],
@@ -67,28 +70,34 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
       limit: 10,
     }),
     enabled: context.type !== 'product',
+    staleTime: 0,
+    gcTime: 0,
   });
 
   // Query para horários de pico
   const { data: hoursData, isLoading: hoursLoading } = useQuery({
-    queryKey: ['drill-down-hours', context.type, context.value, filters],
+    queryKey: ['drill-down-hours', context.type, context.value, filtersKey],
     queryFn: () => analyticsAPI.query({
       metrics: ['qtd_vendas', 'faturamento'],
       dimensions: ['hora'],
       filters: filters,
       order_by: [{ field: 'hora', direction: 'asc' }],
     }),
+    staleTime: 0,
+    gcTime: 0,
   });
 
   // Query para evolução temporal
   const { data: timelineData, isLoading: timelineLoading } = useQuery({
-    queryKey: ['drill-down-timeline', context.type, context.value, filters],
+    queryKey: ['drill-down-timeline', context.type, context.value, filtersKey],
     queryFn: () => analyticsAPI.query({
       metrics: ['faturamento', 'qtd_vendas'],
       dimensions: ['data'],
       filters: filters,
       order_by: [{ field: 'data', direction: 'asc' }],
     }),
+    staleTime: 0,
+    gcTime: 0,
   });
 
   const metrics = metricsData?.data?.[0] || {};
