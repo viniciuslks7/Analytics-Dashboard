@@ -76,7 +76,6 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
       });
       
       // Separar métricas por escala
-      const monetaryMetrics = ['faturamento', 'ticket_medio'];
       const countMetrics = ['qtd_vendas', 'clientes_unicos'];
       const timeMetrics = ['tempo_medio_entrega'];
       
