@@ -107,6 +107,13 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
   const productsChartInstance = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
+    console.log('📊 Products chart effect:', { 
+      hasRef: !!productsChartRef.current, 
+      loading: productsLoading, 
+      hasData: !!productsData?.data,
+      dataLength: productsData?.data?.length 
+    });
+    
     if (!productsChartRef.current || productsLoading || !productsData?.data) return;
 
     if (!productsChartInstance.current) {
@@ -115,6 +122,8 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
 
     const products = productsData.data.map((row: any) => row.nome_produto || 'Desconhecido');
     const values = productsData.data.map((row: any) => Number(row.faturamento) || 0);
+
+    console.log('📊 Products chart data:', { products, values });
 
     const baseTheme = getEChartsTheme(theme);
     const option: echarts.EChartsOption = {
@@ -168,6 +177,13 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
   const hoursChartInstance = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
+    console.log('⏰ Hours chart effect:', { 
+      hasRef: !!hoursChartRef.current, 
+      loading: hoursLoading, 
+      hasData: !!hoursData?.data,
+      dataLength: hoursData?.data?.length 
+    });
+    
     if (!hoursChartRef.current || hoursLoading || !hoursData?.data) return;
 
     if (!hoursChartInstance.current) {
@@ -176,6 +192,8 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
 
     const hours = hoursData.data.map((row: any) => `${row.hora}h`);
     const quantities = hoursData.data.map((row: any) => Number(row.qtd_vendas) || 0);
+
+    console.log('⏰ Hours chart data:', { hours, quantities });
 
     const baseTheme = getEChartsTheme(theme);
     const option: echarts.EChartsOption = {
@@ -224,6 +242,13 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
   const timelineChartInstance = useRef<echarts.ECharts | null>(null);
 
   useEffect(() => {
+    console.log('📈 Timeline chart effect:', { 
+      hasRef: !!timelineChartRef.current, 
+      loading: timelineLoading, 
+      hasData: !!timelineData?.data,
+      dataLength: timelineData?.data?.length 
+    });
+    
     if (!timelineChartRef.current || timelineLoading || !timelineData?.data) return;
 
     if (!timelineChartInstance.current) {
@@ -233,6 +258,8 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
     const dates = timelineData.data.map((row: any) => new Date(row.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
     const revenues = timelineData.data.map((row: any) => Number(row.faturamento) || 0);
     const quantities = timelineData.data.map((row: any) => Number(row.qtd_vendas) || 0);
+
+    console.log('📈 Timeline chart data:', { dates, revenues, quantities });
 
     const baseTheme = getEChartsTheme(theme);
     const option: echarts.EChartsOption = {
