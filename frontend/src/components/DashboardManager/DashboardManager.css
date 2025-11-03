@@ -1,0 +1,19 @@
+/* Dashboard Manager Styles */
+.dashboard-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dashboard-menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-width: 200px;
+}
+
+.dashboard-active-indicator {
+  color: #52c41a;
+  font-size: 12px;
+  margin-left: 8px;
+}

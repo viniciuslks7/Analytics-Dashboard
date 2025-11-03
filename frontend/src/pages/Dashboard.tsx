@@ -6,7 +6,9 @@ import FilterPanel from '../components/Filters/FilterPanel';
 import { PeriodComparison } from '../components/PeriodComparison';
 import { DataTable } from '../components/DataTable';
 import { ExportButton } from '../components/Export';
+import { DashboardManager } from '../components/DashboardManager';
 import { useFilters, getAPIFilters } from '../hooks/useFilters';
+import { useDashboardStore } from '../stores/dashboardStore';
 import { 
   SalesChannelChart, 
   TopProductsChart, 
@@ -50,11 +52,14 @@ const Dashboard: React.FC = () => {
           <h1>Analytics Dashboard</h1>
           <p className="period">{kpiData?.period}</p>
         </div>
-        <ExportButton 
-          data={kpiData?.kpis}
-          filename="dashboard-analytics"
-          elementId="dashboard-content"
-        />
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <DashboardManager />
+          <ExportButton 
+            data={kpiData?.kpis}
+            filename="dashboard-analytics"
+            elementId="dashboard-content"
+          />
+        </div>
       </header>
 
       {/* Filtros Globais */}
