@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as echarts from 'echarts';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
 import { useTheme } from '../../hooks/useTheme';
 import { getEChartsTheme } from '../../styles/theme';
+import { DrillDownModal, DrillDownContext } from '../DrillDown';
 
 interface SalesChannelChartProps {
   filters?: Record<string, any>;
@@ -13,6 +14,8 @@ export const SalesChannelChart = ({ filters = {} }: SalesChannelChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
   const { theme } = useTheme();
+  const [drillDownContext, setDrillDownContext] = useState<DrillDownContext | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['sales-by-channel', filters],
@@ -104,6 +107,20 @@ export const SalesChannelChart = ({ filters = {} }: SalesChannelChartProps) => {
       };
 
       chartInstance.current.setOption(option);
+
+      // Adicionar event listener para drill-down
+      chartInstance.current.off('click');
+      chartInstance.current.on('click', (params: any) => {
+        if (params.componentType === 'series') {
+          setDrillDownContext({
+            type: 'channel',
+            value: params.name,
+            label: params.name,
+            filters: filters
+          });
+          setModalVisible(true);
+        }
+      });
     }
 
     // Resize ao mudar tamanho da janela
@@ -140,5 +157,14 @@ export const SalesChannelChart = ({ filters = {} }: SalesChannelChartProps) => {
     );
   }
 
-  return <div ref={chartRef} className="chart-container" style={{ width: '100%', height: '400px' }} />;
+  return (
+    <>
+      <div ref={chartRef} className="chart-container" style={{ width: '100%', height: '400px', cursor: 'pointer' }} />
+      <DrillDownModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        context={drillDownContext}
+      />
+    </>
+  );
 };

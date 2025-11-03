@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as echarts from 'echarts';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
 import { useTheme } from '../../hooks/useTheme';
 import { getEChartsTheme } from '../../styles/theme';
+import { DrillDownModal, type DrillDownContext } from '../DrillDown';
 
 interface DeliveryMetricsChartProps {
   filters?: Record<string, any>;
@@ -13,6 +14,8 @@ export const DeliveryMetricsChart = ({ filters = {} }: DeliveryMetricsChartProps
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
   const { theme } = useTheme();
+  const [drillDownContext, setDrillDownContext] = useState<DrillDownContext | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['delivery-metrics', filters],
@@ -143,6 +146,20 @@ export const DeliveryMetricsChart = ({ filters = {} }: DeliveryMetricsChartProps
       };
 
       chartInstance.current.setOption(option);
+
+      // Adicionar event listener para drill-down
+      chartInstance.current.off('click');
+      chartInstance.current.on('click', (params: any) => {
+        if (params.componentType === 'series') {
+          setDrillDownContext({
+            type: 'neighborhood',
+            value: params.name,
+            label: params.name,
+            filters: filters
+          });
+          setModalVisible(true);
+        }
+      });
     }
 
     const handleResize = () => {
@@ -177,5 +194,14 @@ export const DeliveryMetricsChart = ({ filters = {} }: DeliveryMetricsChartProps
     );
   }
 
-  return <div ref={chartRef} className="chart-container" style={{ width: '100%', height: '500px' }} />;
+  return (
+    <>
+      <div ref={chartRef} className="chart-container" style={{ width: '100%', height: '500px', cursor: 'pointer' }} />
+      <DrillDownModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        context={drillDownContext}
+      />
+    </>
+  );
 };
