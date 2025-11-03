@@ -8,7 +8,7 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 import type { ColumnDef, SortingState, ColumnFiltersState, VisibilityState } from '@tanstack/react-table';
-import { Card, Button, Input, Select, Space, Checkbox, Dropdown } from 'antd';
+import { Card, Button, Input, Select, Space, Checkbox, Dropdown, Spin, Alert } from 'antd';
 import { 
   DownloadOutlined, 
   EyeOutlined, 
@@ -46,7 +46,7 @@ export const DataTable = ({ filters = {} }: DataTableProps) => {
   });
 
   // Fetch data
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ['table-data', filters, pagination.pageSize],
     queryFn: () => analyticsAPI.query({
       metrics: [
@@ -61,6 +61,19 @@ export const DataTable = ({ filters = {} }: DataTableProps) => {
       limit: 500
     })
   });
+
+  // Log data for debugging
+  if (data?.data) {
+    console.log('📊 DataTable received data:', {
+      rows: data.data.length,
+      firstRow: data.data[0],
+      columns: data.data[0] ? Object.keys(data.data[0]) : []
+    });
+  }
+
+  if (error) {
+    console.error('❌ DataTable error:', error);
+  }
 
   // Define columns
   const columns = useMemo<ColumnDef<TableRow>[]>(
@@ -233,7 +246,19 @@ export const DataTable = ({ filters = {} }: DataTableProps) => {
     >
       {isLoading ? (
         <div style={{ textAlign: 'center', padding: '60px' }}>
-          Carregando dados...
+          <Spin size="large" tip="Carregando dados..." />
+        </div>
+      ) : error ? (
+        <Alert
+          message="Erro ao carregar dados"
+          description={error instanceof Error ? error.message : 'Erro desconhecido'}
+          type="error"
+          showIcon
+          style={{ margin: 16 }}
+        />
+      ) : !data?.data || data.data.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '60px', color: '#999' }}>
+          <p>Nenhum dado disponível para o período selecionado</p>
         </div>
       ) : (
         <>
