@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Card } from 'antd';
 import * as echarts from 'echarts';
+import { useTheme } from '../../hooks/useTheme';
+import { getEChartsTheme } from '../../styles/theme';
 
 interface SegmentDistributionChartProps {
   data: Array<{
@@ -14,6 +16,7 @@ interface SegmentDistributionChartProps {
 export const SegmentDistributionChart = ({ data, loading }: SegmentDistributionChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!chartRef.current || loading) return;
@@ -50,7 +53,9 @@ export const SegmentDistributionChart = ({ data, loading }: SegmentDistributionC
         'Perdidos': '#cf1322'
       };
 
+      const baseTheme = getEChartsTheme(theme);
       const option: echarts.EChartsOption = {
+        ...baseTheme,
         title: {
           text: 'Distribuição de Segmentos RFM',
           left: 'center',
@@ -116,7 +121,7 @@ export const SegmentDistributionChart = ({ data, loading }: SegmentDistributionC
       chartInstance.current?.dispose();
       chartInstance.current = null;
     };
-  }, [data, loading]);
+  }, [data, loading, theme]);
 
   return (
     <Card loading={loading} title="Distribuição de Segmentos">

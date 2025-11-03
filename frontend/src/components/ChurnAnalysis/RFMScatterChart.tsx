@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Card } from 'antd';
 import * as echarts from 'echarts';
+import { useTheme } from '../../hooks/useTheme';
+import { getEChartsTheme } from '../../styles/theme';
 
 interface RFMScatterChartProps {
   data: Array<{
@@ -16,6 +18,7 @@ interface RFMScatterChartProps {
 export const RFMScatterChart = ({ data, loading }: RFMScatterChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!chartRef.current || loading) return;
@@ -61,7 +64,9 @@ export const RFMScatterChart = ({ data, loading }: RFMScatterChartProps) => {
         }
       }));
 
+      const baseTheme = getEChartsTheme(theme);
       const option: echarts.EChartsOption = {
+        ...baseTheme,
         title: {
           text: 'Matriz RFM - Recência vs Frequência',
           left: 'center',
@@ -130,7 +135,7 @@ export const RFMScatterChart = ({ data, loading }: RFMScatterChartProps) => {
       chartInstance.current?.dispose();
       chartInstance.current = null;
     };
-  }, [data, loading]);
+  }, [data, loading, theme]);
 
   return (
     <Card loading={loading} title="Matriz RFM">

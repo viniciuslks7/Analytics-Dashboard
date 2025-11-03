@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { Card } from 'antd';
 import * as echarts from 'echarts';
+import { useTheme } from '../../hooks/useTheme';
+import { getEChartsTheme } from '../../styles/theme';
 
 interface ChurnTrendChartProps {
   data: Array<{
@@ -16,6 +18,7 @@ interface ChurnTrendChartProps {
 export const ChurnTrendChart = ({ data, loading, granularity }: ChurnTrendChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
     if (!chartRef.current || loading) return;
@@ -34,7 +37,9 @@ export const ChurnTrendChart = ({ data, loading, granularity }: ChurnTrendChartP
       const churnedCustomers = data.map(d => d.churned_customers);
       const churnRate = data.map(d => d.churn_rate);
 
+      const baseTheme = getEChartsTheme(theme);
       const option: echarts.EChartsOption = {
+        ...baseTheme,
         title: {
           text: 'Tendência de Churn ao Longo do Tempo',
           left: 'center',
@@ -128,7 +133,7 @@ export const ChurnTrendChart = ({ data, loading, granularity }: ChurnTrendChartP
       chartInstance.current?.dispose();
       chartInstance.current = null;
     };
-  }, [data, loading, granularity]);
+  }, [data, loading, granularity, theme]);
 
   return (
     <Card loading={loading} title="Tendência de Churn">

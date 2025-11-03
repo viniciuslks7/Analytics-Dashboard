@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
+import { useTheme } from '../../hooks/useTheme';
+import { getEChartsTheme } from '../../styles/theme';
 
 interface SalesChannelChartProps {
   filters?: Record<string, any>;
@@ -10,6 +12,7 @@ interface SalesChannelChartProps {
 export const SalesChannelChart = ({ filters = {} }: SalesChannelChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const { theme } = useTheme();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['sales-by-channel', filters],
@@ -36,7 +39,9 @@ export const SalesChannelChart = ({ filters = {} }: SalesChannelChartProps) => {
       const revenues = data.data.map((row: any) => Number(row.faturamento) || 0);
       const quantities = data.data.map((row: any) => Number(row.qtd_vendas) || 0);
 
+      const baseTheme = getEChartsTheme(theme);
       const option: echarts.EChartsOption = {
+        ...baseTheme,
         title: {
           text: 'Vendas por Canal',
           left: 'center',
@@ -110,7 +115,7 @@ export const SalesChannelChart = ({ filters = {} }: SalesChannelChartProps) => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [data]);
+  }, [data, theme]);
 
   // Cleanup ao desmontar
   useEffect(() => {

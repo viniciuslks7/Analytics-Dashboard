@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
 import { Card, Select, Spin, Alert, Button, Space } from 'antd';
 import { LineChartOutlined, DownloadOutlined } from '@ant-design/icons';
+import { useTheme } from '../../hooks/useTheme';
+import { getEChartsTheme } from '../../styles/theme';
 import './TimeSeriesChart.css';
 
 const { Option } = Select;
@@ -15,6 +17,7 @@ interface TimeSeriesChartProps {
 export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const { theme } = useTheme();
   
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(['faturamento', 'qtd_vendas']);
   const [granularity, setGranularity] = useState<'day' | 'week' | 'month'>('day');
@@ -107,7 +110,9 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
         };
       });
 
+      const baseTheme = getEChartsTheme(theme);
       const option: echarts.EChartsOption = {
+        ...baseTheme,
         title: {
           text: 'Evolução Temporal',
           left: 'center',
@@ -240,7 +245,7 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [data, selectedMetrics, granularity]);
+  }, [data, selectedMetrics, granularity, theme]);
 
   const handleExport = () => {
     if (chartInstance.current) {

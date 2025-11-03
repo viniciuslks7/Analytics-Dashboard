@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
+import { useTheme } from '../../hooks/useTheme';
+import { getEChartsTheme } from '../../styles/theme';
 
 interface TopProductsChartProps {
   filters?: Record<string, any>;
@@ -10,6 +12,7 @@ interface TopProductsChartProps {
 export const TopProductsChart = ({ filters = {} }: TopProductsChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const { theme } = useTheme();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['top-products', filters],
@@ -34,7 +37,9 @@ export const TopProductsChart = ({ filters = {} }: TopProductsChartProps) => {
       const products = data.data.map((row: any) => row.nome_produto || 'Desconhecido');
       const quantities = data.data.map((row: any) => Number(row.qtd_vendas) || 0);
 
+      const baseTheme = getEChartsTheme(theme);
       const option: echarts.EChartsOption = {
+        ...baseTheme,
         title: {
           text: 'Top 10 Produtos Mais Vendidos',
           left: 'center',
@@ -108,7 +113,7 @@ export const TopProductsChart = ({ filters = {} }: TopProductsChartProps) => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [data]);
+  }, [data, theme]);
 
   useEffect(() => {
     return () => {

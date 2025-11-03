@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import * as echarts from 'echarts';
 import { useQuery } from '@tanstack/react-query';
 import { analyticsAPI } from '../../api/analytics';
+import { useTheme } from '../../hooks/useTheme';
+import { getEChartsTheme } from '../../styles/theme';
 
 interface DeliveryMetricsChartProps {
   filters?: Record<string, any>;
@@ -10,6 +12,7 @@ interface DeliveryMetricsChartProps {
 export const DeliveryMetricsChart = ({ filters = {} }: DeliveryMetricsChartProps) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const { theme } = useTheme();
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['delivery-metrics', filters],
@@ -35,7 +38,9 @@ export const DeliveryMetricsChart = ({ filters = {} }: DeliveryMetricsChartProps
       const avgDeliveryTime = data.data.map((row: any) => Number(row.tempo_medio_entrega) || 0);
       const quantities = data.data.map((row: any) => Number(row.qtd_vendas) || 0);
 
+      const baseTheme = getEChartsTheme(theme);
       const option: echarts.EChartsOption = {
+        ...baseTheme,
         title: {
           text: 'Tempo Médio de Entrega por Bairro',
           subtext: 'Top 15 bairros com maior tempo de entrega',
@@ -148,7 +153,7 @@ export const DeliveryMetricsChart = ({ filters = {} }: DeliveryMetricsChartProps
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [data]);
+  }, [data, theme]);
 
   useEffect(() => {
     return () => {
