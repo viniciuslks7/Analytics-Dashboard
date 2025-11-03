@@ -22,19 +22,21 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
     
     switch (context.type) {
       case 'channel':
-        filters.canal_venda = context.value;
+        // Backend espera array para filtros IN
+        filters.canal_venda = [context.value];
         break;
       case 'product':
-        filters.nome_produto = context.value;
+        filters.nome_produto = [context.value];
         break;
       case 'neighborhood':
-        filters.bairro = context.value;
+        filters.bairro = [context.value];
         break;
       case 'segment':
         // Para segmentos, não temos filtro direto, mas podemos mostrar dados gerais
         break;
     }
     
+    console.log('🔍 Drill-down filters:', filters);
     return filters;
   };
 
@@ -43,11 +45,15 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
   // Query para métricas principais
   const { data: metricsData, isLoading: metricsLoading } = useQuery({
     queryKey: ['drill-down-metrics', context.type, context.value, filters],
-    queryFn: () => analyticsAPI.query({
-      metrics: ['faturamento', 'qtd_vendas', 'ticket_medio', 'clientes_unicos'],
-      dimensions: [],
-      filters: filters,
-    }),
+    queryFn: async () => {
+      const result = await analyticsAPI.query({
+        metrics: ['faturamento', 'qtd_vendas', 'ticket_medio', 'clientes_unicos'],
+        dimensions: [],
+        filters: filters,
+      });
+      console.log('📊 Metrics data:', result);
+      return result;
+    },
   });
 
   // Query para produtos (se não for drill-down de produto)
