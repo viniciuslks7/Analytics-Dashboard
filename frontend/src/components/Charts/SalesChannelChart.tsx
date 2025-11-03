@@ -15,7 +15,7 @@ export const SalesChannelChart = ({ filters = {} }: SalesChannelChartProps) => {
     queryKey: ['sales-by-channel', filters],
     queryFn: () => analyticsAPI.query({
       metrics: ['faturamento', 'qtd_vendas'],
-      dimensions: ['channel'],
+      dimensions: ['canal_venda'],
       filters: filters,
       order_by: [{ field: 'faturamento', direction: 'desc' }],
       limit: 10
@@ -32,7 +32,7 @@ export const SalesChannelChart = ({ filters = {} }: SalesChannelChartProps) => {
     }
 
     if (data?.data && data.data.length > 0) {
-      const channels = data.data.map((row: any) => row.channel || 'Desconhecido');
+      const channels = data.data.map((row: any) => row.canal_venda || 'Desconhecido');
       const revenues = data.data.map((row: any) => Number(row.faturamento) || 0);
       const quantities = data.data.map((row: any) => Number(row.qtd_vendas) || 0);
 

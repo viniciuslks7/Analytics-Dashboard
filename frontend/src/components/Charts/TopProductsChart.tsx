@@ -15,7 +15,7 @@ export const TopProductsChart = ({ filters = {} }: TopProductsChartProps) => {
     queryKey: ['top-products', filters],
     queryFn: () => analyticsAPI.query({
       metrics: ['qtd_vendas', 'faturamento'],
-      dimensions: ['produto'],
+      dimensions: ['nome_produto'],
       filters: filters,
       order_by: [{ field: 'qtd_vendas', direction: 'desc' }],
       limit: 10
@@ -31,7 +31,7 @@ export const TopProductsChart = ({ filters = {} }: TopProductsChartProps) => {
     }
 
     if (data?.data && data.data.length > 0) {
-      const products = data.data.map((row: any) => row.produto || 'Desconhecido');
+      const products = data.data.map((row: any) => row.nome_produto || 'Desconhecido');
       const quantities = data.data.map((row: any) => Number(row.qtd_vendas) || 0);
 
       const option: echarts.EChartsOption = {
