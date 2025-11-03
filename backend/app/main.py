@@ -14,7 +14,7 @@ if sys.platform == 'win32':
 
 from app.config import settings
 from app.db.database import db
-from app.api import analytics
+from app.api import analytics, alerts
 
 # Configure logging
 logging.basicConfig(
@@ -55,6 +55,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(analytics.router)
+app.include_router(alerts.router)
 
 
 @app.get("/")

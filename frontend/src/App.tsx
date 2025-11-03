@@ -1,9 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
 import { ConfigProvider, Layout, Menu, Switch, theme as antdTheme } from 'antd';
-import { DashboardOutlined, UserDeleteOutlined, BulbOutlined, BulbFilled } from '@ant-design/icons';
+import { DashboardOutlined, UserDeleteOutlined, BulbOutlined, BulbFilled, BellOutlined } from '@ant-design/icons';
 import Dashboard from './pages/Dashboard';
 import { ChurnDashboard } from './pages/ChurnDashboard';
+import { AlertsPage } from './pages/AlertsPage';
+import { AlertNotification } from './components/Alerts';
 import { useTheme } from './hooks/useTheme';
 import { lightTheme, darkTheme } from './styles/theme';
 import './App.css';
@@ -35,6 +37,11 @@ function AppContent() {
       key: '/churn',
       icon: <UserDeleteOutlined />,
       label: <Link to="/churn">Análise de Churn</Link>
+    },
+    {
+      key: '/alerts',
+      icon: <BellOutlined />,
+      label: <Link to="/alerts">Alertas</Link>
     }
   ];
 
@@ -65,9 +72,13 @@ function AppContent() {
       </Header>
       
       <Content style={{ padding: '0' }}>
+        {/* Sistema de notificação automática de alertas */}
+        <AlertNotification checkInterval={60000} enabled={true} />
+        
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/churn" element={<ChurnDashboard />} />
+          <Route path="/alerts" element={<AlertsPage />} />
         </Routes>
       </Content>
     </Layout>
