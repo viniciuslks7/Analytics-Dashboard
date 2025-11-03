@@ -1,0 +1,118 @@
+{
+  "translation": {
+    "app": {
+      "title": "Plataforma de Análisis",
+      "loading": "Cargando...",
+      "error": "Error"
+    },
+    "menu": {
+      "dashboard": "Panel Principal",
+      "churn": "Análisis de Churn",
+      "alerts": "Alertas"
+    },
+    "dashboard": {
+      "title": "Panel de Ventas",
+      "period": "Período",
+      "filters": "Filtros",
+      "applyFilters": "Aplicar Filtros",
+      "clearFilters": "Limpiar Filtros",
+      "export": "Exportar"
+    },
+    "metrics": {
+      "revenue": "Ingresos Totales",
+      "sales": "Cantidad de Ventas",
+      "averageTicket": "Ticket Promedio",
+      "uniqueCustomers": "Clientes Únicos",
+      "deliveryTime": "Tiempo Promedio de Entrega",
+      "ordersByChannel": "Pedidos por Canal",
+      "salesByProduct": "Ventas por Producto",
+      "salesByRegion": "Ventas por Región"
+    },
+    "churn": {
+      "title": "Análisis de Churn",
+      "atRisk": "Clientes en Riesgo",
+      "churned": "Clientes Perdidos",
+      "rfmSegmentation": "Segmentación RFM",
+      "valueAtRisk": "Valor en Riesgo",
+      "lastPurchase": "Última Compra",
+      "totalSpent": "Total Gastado",
+      "frequency": "Frecuencia",
+      "recency": "Recencia",
+      "monetary": "Monetario",
+      "daysInactive": "Días Inactivo",
+      "minPurchases": "Compras Mínimas"
+    },
+    "alerts": {
+      "title": "Gestión de Alertas",
+      "create": "Nueva Alerta",
+      "edit": "Editar Alerta",
+      "delete": "Eliminar Alerta",
+      "name": "Nombre de la Alerta",
+      "description": "Descripción",
+      "metric": "Métrica a Monitorear",
+      "operator": "Operador de Comparación",
+      "threshold": "Valor Límite",
+      "enabled": "Activo",
+      "disabled": "Inactivo",
+      "channels": "Canales de Notificación",
+      "status": "Estado",
+      "triggers": "Disparos",
+      "lastTriggered": "Último Disparo",
+      "never": "Nunca",
+      "actions": "Acciones",
+      "confirmDelete": "¿Eliminar alerta?",
+      "confirmDeleteDesc": "Esta acción no se puede deshacer.",
+      "created": "¡Alerta creada con éxito!",
+      "updated": "¡Alerta actualizada con éxito!",
+      "deleted": "¡Alerta eliminada con éxito!",
+      "allOk": "✅ Todas las Alertas OK",
+      "allOkDesc": "Ninguna alerta fue disparada",
+      "noAlerts": "Ninguna alerta configurada todavía.",
+      "createFirst": "Crear Primera Alerta"
+    },
+    "operators": {
+      "gt": "Mayor que (>)",
+      "lt": "Menor que (<)",
+      "eq": "Igual a (=)",
+      "gte": "Mayor o igual (≥)",
+      "lte": "Menor o igual (≤)"
+    },
+    "channels": {
+      "toast": "Notificación Toast",
+      "email": "Email (próximamente)",
+      "webhook": "Webhook (próximamente)"
+    },
+    "buttons": {
+      "save": "Guardar",
+      "cancel": "Cancelar",
+      "create": "Crear",
+      "edit": "Editar",
+      "delete": "Eliminar",
+      "close": "Cerrar",
+      "apply": "Aplicar",
+      "clear": "Limpiar",
+      "yes": "Sí",
+      "no": "No"
+    },
+    "drilldown": {
+      "title": "Detalles",
+      "overview": "Visión General",
+      "channelDetails": "Detalles del Canal",
+      "productDetails": "Detalles del Producto",
+      "neighborhoodDetails": "Detalles del Barrio",
+      "segmentDetails": "Detalles del Segmento",
+      "loadingDetails": "Cargando datos detallados...",
+      "timeline": "Evolución en el Tiempo",
+      "peakHours": "Horarios Pico",
+      "topProducts": "Productos Más Vendidos"
+    },
+    "comparison": {
+      "title": "Comparación de Períodos",
+      "currentPeriod": "Período Actual",
+      "previousPeriod": "Período Anterior",
+      "change": "Cambio",
+      "improvement": "Mejora",
+      "decline": "Caída"
+    }
+  }
+}

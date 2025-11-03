@@ -1,0 +1,118 @@
+{
+  "translation": {
+    "app": {
+      "title": "Analytics Platform",
+      "loading": "Carregando...",
+      "error": "Erro"
+    },
+    "menu": {
+      "dashboard": "Dashboard Principal",
+      "churn": "Análise de Churn",
+      "alerts": "Alertas"
+    },
+    "dashboard": {
+      "title": "Dashboard de Vendas",
+      "period": "Período",
+      "filters": "Filtros",
+      "applyFilters": "Aplicar Filtros",
+      "clearFilters": "Limpar Filtros",
+      "export": "Exportar"
+    },
+    "metrics": {
+      "revenue": "Faturamento Total",
+      "sales": "Quantidade de Vendas",
+      "averageTicket": "Ticket Médio",
+      "uniqueCustomers": "Clientes Únicos",
+      "deliveryTime": "Tempo Médio de Entrega",
+      "ordersByChannel": "Pedidos por Canal",
+      "salesByProduct": "Vendas por Produto",
+      "salesByRegion": "Vendas por Região"
+    },
+    "churn": {
+      "title": "Análise de Churn",
+      "atRisk": "Clientes em Risco",
+      "churned": "Clientes Perdidos",
+      "rfmSegmentation": "Segmentação RFM",
+      "valueAtRisk": "Valor em Risco",
+      "lastPurchase": "Última Compra",
+      "totalSpent": "Total Gasto",
+      "frequency": "Frequência",
+      "recency": "Recência",
+      "monetary": "Monetário",
+      "daysInactive": "Dias Inativo",
+      "minPurchases": "Compras Mínimas"
+    },
+    "alerts": {
+      "title": "Gerenciamento de Alertas",
+      "create": "Novo Alerta",
+      "edit": "Editar Alerta",
+      "delete": "Deletar Alerta",
+      "name": "Nome do Alerta",
+      "description": "Descrição",
+      "metric": "Métrica a Monitorar",
+      "operator": "Operador de Comparação",
+      "threshold": "Valor Limite",
+      "enabled": "Ativo",
+      "disabled": "Inativo",
+      "channels": "Canais de Notificação",
+      "status": "Status",
+      "triggers": "Disparos",
+      "lastTriggered": "Último Disparo",
+      "never": "Nunca",
+      "actions": "Ações",
+      "confirmDelete": "Deletar alerta?",
+      "confirmDeleteDesc": "Esta ação não pode ser desfeita.",
+      "created": "Alerta criado com sucesso!",
+      "updated": "Alerta atualizado com sucesso!",
+      "deleted": "Alerta deletado com sucesso!",
+      "allOk": "✅ Todos os Alertas OK",
+      "allOkDesc": "Nenhum alerta foi disparado",
+      "noAlerts": "Nenhum alerta configurado ainda.",
+      "createFirst": "Criar Primeiro Alerta"
+    },
+    "operators": {
+      "gt": "Maior que (>)",
+      "lt": "Menor que (<)",
+      "eq": "Igual a (=)",
+      "gte": "Maior ou igual (≥)",
+      "lte": "Menor ou igual (≤)"
+    },
+    "channels": {
+      "toast": "Notificação Toast",
+      "email": "Email (em breve)",
+      "webhook": "Webhook (em breve)"
+    },
+    "buttons": {
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "create": "Criar",
+      "edit": "Editar",
+      "delete": "Deletar",
+      "close": "Fechar",
+      "apply": "Aplicar",
+      "clear": "Limpar",
+      "yes": "Sim",
+      "no": "Não"
+    },
+    "drilldown": {
+      "title": "Detalhes",
+      "overview": "Visão Geral",
+      "channelDetails": "Detalhes do Canal",
+      "productDetails": "Detalhes do Produto",
+      "neighborhoodDetails": "Detalhes do Bairro",
+      "segmentDetails": "Detalhes do Segmento",
+      "loadingDetails": "Carregando dados detalhados...",
+      "timeline": "Evolução ao Longo do Tempo",
+      "peakHours": "Horários de Pico",
+      "topProducts": "Produtos Mais Vendidos"
+    },
+    "comparison": {
+      "title": "Comparação de Períodos",
+      "currentPeriod": "Período Atual",
+      "previousPeriod": "Período Anterior",
+      "change": "Mudança",
+      "improvement": "Melhora",
+      "decline": "Queda"
+    }
+  }
+}

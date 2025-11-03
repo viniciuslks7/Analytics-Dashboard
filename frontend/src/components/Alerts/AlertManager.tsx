@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, Button, Table, Tag, Space, Switch, Popconfirm, message, Tooltip } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, BellOutlined, CheckCircleOutlined } from '@ant-design/icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { alertsAPI } from '../../api/alerts';
 import type { Alert } from '../../api/alerts';
 import { CreateAlertModal } from './CreateAlertModal.tsx';
@@ -11,6 +12,7 @@ export const AlertManager = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingAlert, setEditingAlert] = useState<Alert | null>(null);
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   // Query para listar alertas
   const { data: alerts, isLoading } = useQuery({
@@ -22,11 +24,11 @@ export const AlertManager = () => {
   const deleteMutation = useMutation({
     mutationFn: (alertId: string) => alertsAPI.delete(alertId),
     onSuccess: () => {
-      message.success('Alerta deletado com sucesso!');
+      message.success(t('alerts.deleted'));
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
     },
     onError: () => {
-      message.error('Erro ao deletar alerta');
+      message.error(t('app.error'));
     }
   });
 
@@ -38,7 +40,7 @@ export const AlertManager = () => {
       queryClient.invalidateQueries({ queryKey: ['alerts'] });
     },
     onError: () => {
-      message.error('Erro ao atualizar alerta');
+      message.error(t('app.error'));
     }
   });
 

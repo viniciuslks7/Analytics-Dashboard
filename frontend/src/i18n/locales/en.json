@@ -1,0 +1,118 @@
+{
+  "translation": {
+    "app": {
+      "title": "Analytics Platform",
+      "loading": "Loading...",
+      "error": "Error"
+    },
+    "menu": {
+      "dashboard": "Main Dashboard",
+      "churn": "Churn Analysis",
+      "alerts": "Alerts"
+    },
+    "dashboard": {
+      "title": "Sales Dashboard",
+      "period": "Period",
+      "filters": "Filters",
+      "applyFilters": "Apply Filters",
+      "clearFilters": "Clear Filters",
+      "export": "Export"
+    },
+    "metrics": {
+      "revenue": "Total Revenue",
+      "sales": "Number of Sales",
+      "averageTicket": "Average Ticket",
+      "uniqueCustomers": "Unique Customers",
+      "deliveryTime": "Average Delivery Time",
+      "ordersByChannel": "Orders by Channel",
+      "salesByProduct": "Sales by Product",
+      "salesByRegion": "Sales by Region"
+    },
+    "churn": {
+      "title": "Churn Analysis",
+      "atRisk": "Customers at Risk",
+      "churned": "Churned Customers",
+      "rfmSegmentation": "RFM Segmentation",
+      "valueAtRisk": "Value at Risk",
+      "lastPurchase": "Last Purchase",
+      "totalSpent": "Total Spent",
+      "frequency": "Frequency",
+      "recency": "Recency",
+      "monetary": "Monetary",
+      "daysInactive": "Days Inactive",
+      "minPurchases": "Minimum Purchases"
+    },
+    "alerts": {
+      "title": "Alert Management",
+      "create": "New Alert",
+      "edit": "Edit Alert",
+      "delete": "Delete Alert",
+      "name": "Alert Name",
+      "description": "Description",
+      "metric": "Metric to Monitor",
+      "operator": "Comparison Operator",
+      "threshold": "Threshold Value",
+      "enabled": "Active",
+      "disabled": "Inactive",
+      "channels": "Notification Channels",
+      "status": "Status",
+      "triggers": "Triggers",
+      "lastTriggered": "Last Triggered",
+      "never": "Never",
+      "actions": "Actions",
+      "confirmDelete": "Delete alert?",
+      "confirmDeleteDesc": "This action cannot be undone.",
+      "created": "Alert created successfully!",
+      "updated": "Alert updated successfully!",
+      "deleted": "Alert deleted successfully!",
+      "allOk": "✅ All Alerts OK",
+      "allOkDesc": "No alerts were triggered",
+      "noAlerts": "No alerts configured yet.",
+      "createFirst": "Create First Alert"
+    },
+    "operators": {
+      "gt": "Greater than (>)",
+      "lt": "Less than (<)",
+      "eq": "Equal to (=)",
+      "gte": "Greater or equal (≥)",
+      "lte": "Less or equal (≤)"
+    },
+    "channels": {
+      "toast": "Toast Notification",
+      "email": "Email (coming soon)",
+      "webhook": "Webhook (coming soon)"
+    },
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "create": "Create",
+      "edit": "Edit",
+      "delete": "Delete",
+      "close": "Close",
+      "apply": "Apply",
+      "clear": "Clear",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "drilldown": {
+      "title": "Details",
+      "overview": "Overview",
+      "channelDetails": "Channel Details",
+      "productDetails": "Product Details",
+      "neighborhoodDetails": "Neighborhood Details",
+      "segmentDetails": "Segment Details",
+      "loadingDetails": "Loading detailed data...",
+      "timeline": "Timeline Evolution",
+      "peakHours": "Peak Hours",
+      "topProducts": "Top Selling Products"
+    },
+    "comparison": {
+      "title": "Period Comparison",
+      "currentPeriod": "Current Period",
+      "previousPeriod": "Previous Period",
+      "change": "Change",
+      "improvement": "Improvement",
+      "decline": "Decline"
+    }
+  }
+}
