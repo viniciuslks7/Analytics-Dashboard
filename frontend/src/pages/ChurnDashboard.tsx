@@ -7,10 +7,12 @@ import {
 } from '@ant-design/icons';
 import { useQuery } from '@tanstack/react-query';
 import dayjs from 'dayjs';
-import { RFMScatterChart } from '../components/ChurnAnalysis/RFMScatterChart';
-import { ChurnTrendChart } from '../components/ChurnAnalysis/ChurnTrendChart';
-import { AtRiskCustomersTable } from '../components/ChurnAnalysis/AtRiskCustomersTable';
-import { SegmentDistributionChart } from '../components/ChurnAnalysis/SegmentDistributionChart';
+import {
+  RFMScatterChart,
+  ChurnTrendChart,
+  AtRiskCustomersTable,
+  SegmentDistributionChart
+} from '../components/ChurnAnalysis';
 import './ChurnDashboard.css';
 
 const { RangePicker } = DatePicker;
