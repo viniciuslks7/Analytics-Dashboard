@@ -114,10 +114,16 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
       dataLength: productsData?.data?.length 
     });
     
-    if (!productsChartRef.current || productsLoading || !productsData?.data) return;
+    if (!productsChartRef.current || productsLoading || !productsData?.data || productsData.data.length === 0) {
+      console.log('📊 Products chart: skipping render');
+      return;
+    }
 
     if (!productsChartInstance.current) {
+      console.log('📊 Products chart: creating new instance');
       productsChartInstance.current = echarts.init(productsChartRef.current);
+    } else {
+      console.log('📊 Products chart: reusing existing instance');
     }
 
     const products = productsData.data.map((row: any) => row.nome_produto || 'Desconhecido');
@@ -184,10 +190,16 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
       dataLength: hoursData?.data?.length 
     });
     
-    if (!hoursChartRef.current || hoursLoading || !hoursData?.data) return;
+    if (!hoursChartRef.current || hoursLoading || !hoursData?.data || hoursData.data.length === 0) {
+      console.log('⏰ Hours chart: skipping render');
+      return;
+    }
 
     if (!hoursChartInstance.current) {
+      console.log('⏰ Hours chart: creating new instance');
       hoursChartInstance.current = echarts.init(hoursChartRef.current);
+    } else {
+      console.log('⏰ Hours chart: reusing existing instance');
     }
 
     const hours = hoursData.data.map((row: any) => `${row.hora}h`);
@@ -249,13 +261,19 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
       dataLength: timelineData?.data?.length 
     });
     
-    if (!timelineChartRef.current || timelineLoading || !timelineData?.data) return;
-
-    if (!timelineChartInstance.current) {
-      timelineChartInstance.current = echarts.init(timelineChartRef.current);
+    if (!timelineChartRef.current || timelineLoading || !timelineData?.data || timelineData.data.length === 0) {
+      console.log('📈 Timeline chart: skipping render');
+      return;
     }
 
-    const dates = timelineData.data.map((row: any) => new Date(row.data).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }));
+    if (!timelineChartInstance.current) {
+      console.log('📈 Timeline chart: creating new instance');
+      timelineChartInstance.current = echarts.init(timelineChartRef.current);
+    } else {
+      console.log('📈 Timeline chart: reusing existing instance');
+    }
+
+    const dates = timelineData.data.map((row: any) => new Date(row.data_venda).toLocaleDateString('pt-BR'));
     const revenues = timelineData.data.map((row: any) => Number(row.faturamento) || 0);
     const quantities = timelineData.data.map((row: any) => Number(row.qtd_vendas) || 0);
 
@@ -324,12 +342,22 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
     };
   }, [timelineData, timelineLoading, theme]);
 
-  // Cleanup dos gráficos
+  // Cleanup dos gráficos quando o componente desmonta
   useEffect(() => {
     return () => {
-      productsChartInstance.current?.dispose();
-      hoursChartInstance.current?.dispose();
-      timelineChartInstance.current?.dispose();
+      console.log('🧹 Cleaning up charts...');
+      if (productsChartInstance.current) {
+        productsChartInstance.current.dispose();
+        productsChartInstance.current = null;
+      }
+      if (hoursChartInstance.current) {
+        hoursChartInstance.current.dispose();
+        hoursChartInstance.current = null;
+      }
+      if (timelineChartInstance.current) {
+        timelineChartInstance.current.dispose();
+        timelineChartInstance.current = null;
+      }
     };
   }, []);
 
