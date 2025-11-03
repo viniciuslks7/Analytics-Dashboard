@@ -67,6 +67,20 @@ class ComparisonPeriod(BaseModel):
     compare_end: date
 
 
+# Response Models
+class QueryMetadata(BaseModel):
+    """Metadata about the query execution"""
+    total_rows: int
+    query_time_ms: float
+    cached: bool = False
+    timestamp: datetime = Field(default_factory=datetime.now)
+
+
+class AnalyticsDataPoint(BaseModel):
+    """Single data point in analytics response"""
+    data: Dict[str, Any]
+
+
 class MetricComparison(BaseModel):
     """Comparison of a single metric between two periods"""
     metric_name: str
@@ -83,20 +97,6 @@ class PeriodComparisonResponse(BaseModel):
     compare_period: Dict[str, date]
     comparisons: List[MetricComparison]
     metadata: QueryMetadata
-
-
-# Response Models
-class AnalyticsDataPoint(BaseModel):
-    """Single data point in analytics response"""
-    data: Dict[str, Any]
-
-
-class QueryMetadata(BaseModel):
-    """Metadata about the query execution"""
-    total_rows: int
-    query_time_ms: float
-    cached: bool = False
-    timestamp: datetime = Field(default_factory=datetime.now)
 
 
 class AnalyticsQueryResponse(BaseModel):
