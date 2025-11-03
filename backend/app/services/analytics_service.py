@@ -4,6 +4,7 @@ Analytics Service - Core business logic for data analytics
 from typing import List, Dict, Any, Optional
 from datetime import datetime, date
 import time
+import logging
 
 from app.db.database import db
 from app.cache.redis_client import redis_cache
@@ -15,6 +16,8 @@ from app.models.schemas import (
     KPICard,
     KPIDashboard
 )
+
+logger = logging.getLogger(__name__)
 
 
 class AnalyticsService:
@@ -219,6 +222,11 @@ class AnalyticsService:
         # Build WHERE clause
         where_conditions = ["s.sale_status_desc = 'COMPLETED'"]
         
+        # If using bairro/cidade dimensions, filter out NULL delivery addresses
+        if "bairro" in request.dimensions or "cidade" in request.dimensions:
+            if "delivery_addresses" in joins_needed:
+                where_conditions.append("da.neighborhood IS NOT NULL")
+        
         # Add date range filter
         if request.date_range:
             if request.date_range.start_date:
@@ -329,10 +337,13 @@ SELECT
     async def get_kpi_dashboard(
         self, 
         start_date: Optional[date] = None,
-        end_date: Optional[date] = None
+        end_date: Optional[date] = None,
+        filters: Optional[Dict[str, Any]] = None
     ) -> KPIDashboard:
-        """Get main KPI dashboard"""
+        """Get main KPI dashboard with optional filters"""
         start_time = time.time()
+        
+        logger.debug(f"🔧 get_kpi_dashboard called with filters: {filters}")
         
         # Build date filter
         date_filter = ""
@@ -344,6 +355,46 @@ SELECT
             params.append(end_date)
             date_filter += f" AND DATE(s.created_at) <= %s"
         
+        # Build filter conditions
+        filter_conditions = []
+        if filters:
+            # Add filter for sales channels
+            if 'canal_venda' in filters and filters['canal_venda']:
+                placeholders = ', '.join(['%s'] * len(filters['canal_venda']))
+                filter_conditions.append(f"ch.name IN ({placeholders})")
+                params.extend(filters['canal_venda'])
+            
+            # Add filter for stores
+            if 'nome_loja' in filters and filters['nome_loja']:
+                placeholders = ', '.join(['%s'] * len(filters['nome_loja']))
+                filter_conditions.append(f"st.name IN ({placeholders})")
+                params.extend(filters['nome_loja'])
+            
+            # Add filter for products
+            if 'nome_produto' in filters and filters['nome_produto']:
+                placeholders = ', '.join(['%s'] * len(filters['nome_produto']))
+                filter_conditions.append(f"""
+                    s.id IN (
+                        SELECT DISTINCT ps.sale_id 
+                        FROM product_sales ps
+                        JOIN products p ON p.id = ps.product_id
+                        WHERE p.name IN ({placeholders})
+                    )
+                """)
+                params.extend(filters['nome_produto'])
+        
+        additional_where = ' AND ' + ' AND '.join(filter_conditions) if filter_conditions else ''
+        
+        # Determine if we need JOINs
+        needs_channel_join = 'canal_venda' in (filters or {})
+        needs_store_join = 'nome_loja' in (filters or {})
+        
+        joins = ""
+        if needs_channel_join:
+            joins += "\nLEFT JOIN channels ch ON ch.id = s.channel_id"
+        if needs_store_join:
+            joins += "\nLEFT JOIN stores st ON st.id = s.store_id"
+        
         query = f"""
         SELECT
             SUM(total_amount) as faturamento_total,
@@ -353,10 +404,16 @@ SELECT
             AVG(delivery_seconds / 60.0) FILTER (WHERE delivery_seconds IS NOT NULL) as tempo_medio_entrega_min,
             AVG(production_seconds / 60.0) FILTER (WHERE production_seconds IS NOT NULL) as tempo_medio_preparo_min
         FROM sales s
-        WHERE sale_status_desc = 'COMPLETED' {date_filter}
+        {joins}
+        WHERE sale_status_desc = 'COMPLETED' {date_filter} {additional_where}
         """
         
+        logger.debug(f"📝 SQL Query: {query}")
+        logger.debug(f"📝 SQL Params: {params}")
+        
         row = await db.fetch_one(query, *params)
+        
+        logger.debug(f"💰 Query result - Faturamento: {row['faturamento_total']}, Vendas: {row['total_vendas']}")
         
         kpis = [
             KPICard(
@@ -412,15 +469,62 @@ SELECT
         base_start: date,
         base_end: date,
         compare_start: date,
-        compare_end: date
+        compare_end: date,
+        filters: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """Compare metrics between two periods"""
+        """Compare metrics between two periods with optional filters"""
         from app.models.schemas import MetricComparison, PeriodComparisonResponse
         
         start_time = time.time()
         
+        # Build WHERE clause with filters
+        filter_conditions = []
+        filter_params_base = [base_start, base_end]
+        filter_params_compare = [compare_start, compare_end]
+        
+        if filters:
+            # Add filter for sales channels
+            if 'canal_venda' in filters and filters['canal_venda']:
+                placeholders = ', '.join(['%s'] * len(filters['canal_venda']))
+                filter_conditions.append(f"ch.name IN ({placeholders})")
+                filter_params_base.extend(filters['canal_venda'])
+                filter_params_compare.extend(filters['canal_venda'])
+            
+            # Add filter for stores
+            if 'nome_loja' in filters and filters['nome_loja']:
+                placeholders = ', '.join(['%s'] * len(filters['nome_loja']))
+                filter_conditions.append(f"st.name IN ({placeholders})")
+                filter_params_base.extend(filters['nome_loja'])
+                filter_params_compare.extend(filters['nome_loja'])
+            
+            # Add filter for products
+            if 'nome_produto' in filters and filters['nome_produto']:
+                placeholders = ', '.join(['%s'] * len(filters['nome_produto']))
+                filter_conditions.append(f"""
+                    s.id IN (
+                        SELECT DISTINCT ps.sale_id 
+                        FROM product_sales ps
+                        JOIN products p ON p.id = ps.product_id
+                        WHERE p.name IN ({placeholders})
+                    )
+                """)
+                filter_params_base.extend(filters['nome_produto'])
+                filter_params_compare.extend(filters['nome_produto'])
+        
+        additional_where = ' AND ' + ' AND '.join(filter_conditions) if filter_conditions else ''
+        
+        # Determine if we need JOINs
+        needs_channel_join = 'canal_venda' in (filters or {})
+        needs_store_join = 'nome_loja' in (filters or {})
+        
+        joins = ""
+        if needs_channel_join:
+            joins += "\nLEFT JOIN channels ch ON ch.id = s.channel_id"
+        if needs_store_join:
+            joins += "\nLEFT JOIN stores st ON st.id = s.store_id"
+        
         # Query for base period
-        base_query = """
+        base_query = f"""
         SELECT
             SUM(total_amount) as faturamento_total,
             AVG(total_amount) as ticket_medio,
@@ -428,13 +532,15 @@ SELECT
             COUNT(DISTINCT customer_id) FILTER (WHERE customer_id IS NOT NULL) as clientes_unicos,
             AVG(delivery_seconds / 60.0) FILTER (WHERE delivery_seconds IS NOT NULL) as tempo_medio_entrega
         FROM sales s
+        {joins}
         WHERE sale_status_desc = 'COMPLETED'
           AND DATE(s.created_at) >= %s
           AND DATE(s.created_at) <= %s
+          {additional_where}
         """
         
         # Query for compare period  
-        compare_query = """
+        compare_query = f"""
         SELECT
             SUM(total_amount) as faturamento_total,
             AVG(total_amount) as ticket_medio,
@@ -442,13 +548,15 @@ SELECT
             COUNT(DISTINCT customer_id) FILTER (WHERE customer_id IS NOT NULL) as clientes_unicos,
             AVG(delivery_seconds / 60.0) FILTER (WHERE delivery_seconds IS NOT NULL) as tempo_medio_entrega
         FROM sales s
+        {joins}
         WHERE sale_status_desc = 'COMPLETED'
           AND DATE(s.created_at) >= %s
           AND DATE(s.created_at) <= %s
+          {additional_where}
         """
         
-        base_row = await db.fetch_one(base_query, base_start, base_end)
-        compare_row = await db.fetch_one(compare_query, compare_start, compare_end)
+        base_row = await db.fetch_one(base_query, *filter_params_base)
+        compare_row = await db.fetch_one(compare_query, *filter_params_compare)
         
         # Build comparisons
         comparisons = []

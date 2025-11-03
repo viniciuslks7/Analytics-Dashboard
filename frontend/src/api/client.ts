@@ -7,6 +7,9 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  paramsSerializer: {
+    indexes: null, // Use repeat syntax: ?canal_venda=A&canal_venda=B instead of ?canal_venda[0]=A&canal_venda[1]=B
+  }
 });
 
 // Request interceptor

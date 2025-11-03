@@ -109,15 +109,37 @@ def _is_safe_custom_metric(metric: str) -> bool:
 @router.get("/kpis", response_model=KPIDashboard)
 async def get_kpi_dashboard(
     start_date: Optional[date] = Query(None, description="Start date filter"),
-    end_date: Optional[date] = Query(None, description="End date filter")
+    end_date: Optional[date] = Query(None, description="End date filter"),
+    canal_venda: Optional[List[str]] = Query(None, description="Filter by sales channel"),
+    nome_loja: Optional[List[str]] = Query(None, description="Filter by store name"),
+    nome_produto: Optional[List[str]] = Query(None, description="Filter by product name")
 ):
     """
-    Get main KPI dashboard with key metrics
+    Get main KPI dashboard with key metrics and optional filters
     """
     try:
-        result = await analytics_service.get_kpi_dashboard(start_date, end_date)
+        logger.debug(f"📊 KPI Dashboard Request:")
+        logger.debug(f"  Date: {start_date} to {end_date}")
+        logger.debug(f"  Canal: {canal_venda}")
+        logger.debug(f"  Loja: {nome_loja}")
+        logger.debug(f"  Produto: {nome_produto}")
+        
+        # Build filters dict
+        filters = {}
+        if canal_venda:
+            filters['canal_venda'] = canal_venda
+        if nome_loja:
+            filters['nome_loja'] = nome_loja
+        if nome_produto:
+            filters['nome_produto'] = nome_produto
+        
+        logger.debug(f"  Filters dict: {filters}")
+        
+        result = await analytics_service.get_kpi_dashboard(start_date, end_date, filters)
+        logger.debug(f"✅ KPI Result: {result.kpis[0].value if result.kpis else 'no data'}")
         return result
     except Exception as e:
+        logger.error(f"❌ KPI Error: {str(e)}")
         raise HTTPException(status_code=500, detail=f"KPI calculation error: {str(e)}")
 
 
@@ -126,16 +148,33 @@ async def compare_periods(
     base_start: date = Query(..., description="Base period start date"),
     base_end: date = Query(..., description="Base period end date"),
     compare_start: date = Query(..., description="Compare period start date"),
-    compare_end: date = Query(..., description="Compare period end date")
+    compare_end: date = Query(..., description="Compare period end date"),
+    canal_venda: Optional[List[str]] = Query(None, description="Filter by sales channel"),
+    nome_loja: Optional[List[str]] = Query(None, description="Filter by store name"),
+    nome_produto: Optional[List[str]] = Query(None, description="Filter by product name")
 ):
     """
-    Compare metrics between two time periods
+    Compare metrics between two time periods with optional filters
     
     Example: /api/v1/analytics/compare?base_start=2025-05-13&base_end=2025-05-20&compare_start=2025-05-05&compare_end=2025-05-12
     """
     try:
         logger.debug(f"📊 Period Comparison: Base({base_start} to {base_end}) vs Compare({compare_start} to {compare_end})")
-        result = await analytics_service.compare_periods(base_start, base_end, compare_start, compare_end)
+        
+        # Build filters dict
+        filters = {}
+        if canal_venda:
+            filters['canal_venda'] = canal_venda
+        if nome_loja:
+            filters['nome_loja'] = nome_loja
+        if nome_produto:
+            filters['nome_produto'] = nome_produto
+        
+        logger.debug(f"🔍 Applied filters: {filters}")
+        
+        result = await analytics_service.compare_periods(
+            base_start, base_end, compare_start, compare_end, filters
+        )
         logger.debug(f"✅ Comparison Success: {len(result.comparisons)} metrics compared")
         return result
     except Exception as e:

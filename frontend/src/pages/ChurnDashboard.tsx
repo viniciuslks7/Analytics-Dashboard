@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Card, Row, Col, Statistic, Select, DatePicker, Space } from 'antd';
+import { useTranslation } from 'react-i18next';
 import {
   UserDeleteOutlined,
   WarningOutlined,
@@ -18,11 +19,14 @@ import './ChurnDashboard.css';
 const { RangePicker } = DatePicker;
 const { Option } = Select;
 
+// API Configuration
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 // API client
 const churnAPI = {
   async getMetrics(daysInactive: number) {
     const response = await fetch(
-      `http://localhost:8000/api/v1/analytics/churn/metrics?days_inactive=${daysInactive}`
+      `${API_BASE_URL}/api/v1/analytics/churn/metrics?days_inactive=${daysInactive}`
     );
     if (!response.ok) throw new Error('Failed to fetch churn metrics');
     return response.json();
@@ -30,7 +34,7 @@ const churnAPI = {
 
   async getAtRiskCustomers(minPurchases: number, daysInactive: number, limit: number) {
     const response = await fetch(
-      `http://localhost:8000/api/v1/analytics/churn/at-risk?min_purchases=${minPurchases}&days_inactive=${daysInactive}&limit=${limit}`
+      `${API_BASE_URL}/api/v1/analytics/churn/at-risk?min_purchases=${minPurchases}&days_inactive=${daysInactive}&limit=${limit}`
     );
     if (!response.ok) throw new Error('Failed to fetch at-risk customers');
     return response.json();
@@ -38,14 +42,14 @@ const churnAPI = {
 
   async getRFMSegments() {
     const response = await fetch(
-      'http://localhost:8000/api/v1/analytics/churn/rfm-segments'
+      `${API_BASE_URL}/api/v1/analytics/churn/rfm-segments`
     );
     if (!response.ok) throw new Error('Failed to fetch RFM segments');
     return response.json();
   },
 
   async getChurnTrend(startDate?: string, endDate?: string, granularity: string = 'week') {
-    let url = `http://localhost:8000/api/v1/analytics/churn/trend?granularity=${granularity}`;
+    let url = `${API_BASE_URL}/api/v1/analytics/churn/trend?granularity=${granularity}`;
     if (startDate) url += `&start_date=${startDate}`;
     if (endDate) url += `&end_date=${endDate}`;
     
@@ -56,6 +60,7 @@ const churnAPI = {
 };
 
 export const ChurnDashboard = () => {
+  const { t } = useTranslation();
   const [daysInactive, setDaysInactive] = useState(30);
   const [minPurchases, setMinPurchases] = useState(2);
   const [dateRange, setDateRange] = useState<[string, string]>([
@@ -79,8 +84,10 @@ export const ChurnDashboard = () => {
   });
 
   // Fetch RFM segments
+  // Note: RFM calculation doesn't use filters, but we include them in queryKey
+  // to trigger re-render when filters change for visual consistency
   const { data: rfmData, isLoading: rfmLoading } = useQuery({
-    queryKey: ['rfm-segments'],
+    queryKey: ['rfm-segments', daysInactive, minPurchases],
     queryFn: () => churnAPI.getRFMSegments(),
     refetchInterval: 60000
   });
@@ -107,32 +114,32 @@ export const ChurnDashboard = () => {
       <div className="churn-header">
         <div>
           <h1>
-            <UserDeleteOutlined /> Customer Churn Analysis
+            <UserDeleteOutlined /> {t('churn.title')}
           </h1>
           <p className="subtitle">
-            Análise de retenção e clientes em risco de churn
+            {t('churn.subtitle')}
           </p>
         </div>
         
         {/* Filters */}
         <Space size="large" className="churn-filters">
           <Space>
-            <label>Dias de Inatividade:</label>
+            <label>{t('churn.daysInactive')}:</label>
             <Select
               value={daysInactive}
               onChange={setDaysInactive}
               style={{ width: 120 }}
             >
-              <Option value={15}>15 dias</Option>
-              <Option value={30}>30 dias</Option>
-              <Option value={45}>45 dias</Option>
-              <Option value={60}>60 dias</Option>
-              <Option value={90}>90 dias</Option>
+              <Option value={15}>15 {t('churn.days')}</Option>
+              <Option value={30}>30 {t('churn.days')}</Option>
+              <Option value={45}>45 {t('churn.days')}</Option>
+              <Option value={60}>60 {t('churn.days')}</Option>
+              <Option value={90}>90 {t('churn.days')}</Option>
             </Select>
           </Space>
 
           <Space>
-            <label>Min. Compras:</label>
+            <label>{t('churn.minPurchases')}:</label>
             <Select
               value={minPurchases}
               onChange={setMinPurchases}
@@ -146,7 +153,7 @@ export const ChurnDashboard = () => {
           </Space>
 
           <Space>
-            <label>Período:</label>
+            <label>{t('dashboard.period')}:</label>
             <RangePicker
               value={[dayjs(dateRange[0]), dayjs(dateRange[1])]}
               onChange={handleDateRangeChange}
@@ -155,15 +162,15 @@ export const ChurnDashboard = () => {
           </Space>
 
           <Space>
-            <label>Granularidade:</label>
+            <label>{t('churn.granularity')}:</label>
             <Select
               value={granularity}
               onChange={setGranularity}
               style={{ width: 100 }}
             >
-              <Option value="day">Dia</Option>
-              <Option value="week">Semana</Option>
-              <Option value="month">Mês</Option>
+              <Option value="day">{t('churn.day')}</Option>
+              <Option value="week">{t('churn.week')}</Option>
+              <Option value="month">{t('churn.month')}</Option>
             </Select>
           </Space>
         </Space>
@@ -174,7 +181,7 @@ export const ChurnDashboard = () => {
         <Col xs={24} sm={12} md={6}>
           <Card loading={metricsLoading}>
             <Statistic
-              title="Taxa de Churn"
+              title={t('churn.churnRate')}
               value={metricsData?.churn_rate || 0}
               suffix="%"
               prefix={<UserDeleteOutlined />}
@@ -186,7 +193,7 @@ export const ChurnDashboard = () => {
         <Col xs={24} sm={12} md={6}>
           <Card loading={metricsLoading}>
             <Statistic
-              title="Clientes em Risco"
+              title={t('churn.atRisk')}
               value={metricsData?.at_risk_customers || 0}
               prefix={<WarningOutlined />}
               valueStyle={{ color: '#fa8c16' }}
@@ -197,7 +204,7 @@ export const ChurnDashboard = () => {
         <Col xs={24} sm={12} md={6}>
           <Card loading={metricsLoading}>
             <Statistic
-              title="Valor em Risco"
+              title={t('churn.valueAtRisk')}
               value={metricsData?.value_at_risk || 0}
               prefix="R$"
               precision={2}
@@ -209,7 +216,7 @@ export const ChurnDashboard = () => {
         <Col xs={24} sm={12} md={6}>
           <Card loading={metricsLoading}>
             <Statistic
-              title="Clientes Ativos"
+              title={t('churn.activeCustomers')}
               value={metricsData?.active_customers || 0}
               prefix={<TeamOutlined />}
               valueStyle={{ color: '#3f8600' }}

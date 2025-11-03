@@ -134,7 +134,10 @@ export const TopProductsChart = ({ filters = {} }: TopProductsChartProps) => {
 
   useEffect(() => {
     return () => {
-      chartInstance.current?.dispose();
+      if (chartInstance.current) {
+        chartInstance.current.dispose();
+        chartInstance.current = null;
+      }
     };
   }, []);
 

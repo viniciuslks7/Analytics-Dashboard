@@ -22,16 +22,28 @@ class ChurnService:
             
         Returns:
             Dict with churn rate, at-risk customers, value at risk, etc.
+            
+        Note:
+            Uses the last sale date in dataset as reference point.
+            Churn is calculated relative to the dataset's timeframe, not current date.
         """
         query = f"""
-        WITH customer_stats AS (
+        WITH dataset_reference AS (
+            SELECT 
+                MIN(created_at::date) as start_date,
+                MAX(created_at::date) as reference_date,
+                MAX(created_at::date) - MIN(created_at::date) as dataset_span_days
+            FROM sales
+        ),
+        customer_stats AS (
             SELECT 
                 customer_id,
-                MAX(created_at) as last_purchase_date,
+                MAX(s.created_at) as last_purchase_date,
                 COUNT(*) as total_purchases,
-                SUM(total_amount) as lifetime_value,
-                CURRENT_DATE - MAX(created_at::date) as days_since_last_purchase
-            FROM sales
+                SUM(s.total_amount) as lifetime_value,
+                (SELECT reference_date FROM dataset_reference) - MAX(s.created_at::date) as days_since_last_purchase,
+                (SELECT dataset_span_days FROM dataset_reference) as dataset_span
+            FROM sales s
             GROUP BY customer_id
         ),
         churn_classification AS (
@@ -40,10 +52,22 @@ class ChurnService:
                 total_purchases,
                 lifetime_value,
                 days_since_last_purchase,
+                dataset_span,
                 CASE 
-                    WHEN days_since_last_purchase > {days_inactive} THEN 'churned'
-                    WHEN days_since_last_purchase > {days_inactive // 2} THEN 'at_risk'
-                    ELSE 'active'
+                    -- If dataset span is less than threshold, use adaptive calculation
+                    -- Churned: > 50%% of dataset span (or original threshold if smaller)
+                    WHEN dataset_span < {days_inactive} THEN
+                        CASE 
+                            WHEN days_since_last_purchase > (dataset_span * 0.5) THEN 'churned'
+                            WHEN days_since_last_purchase > (dataset_span * 0.3) THEN 'at_risk'
+                            ELSE 'active'
+                        END
+                    ELSE
+                        CASE 
+                            WHEN days_since_last_purchase > {days_inactive} THEN 'churned'
+                            WHEN days_since_last_purchase > {days_inactive // 2} THEN 'at_risk'
+                            ELSE 'active'
+                        END
                 END as status
             FROM customer_stats
             WHERE total_purchases >= 1
@@ -55,7 +79,9 @@ class ChurnService:
             COUNT(*) as total_customers,
             COALESCE(SUM(lifetime_value) FILTER (WHERE status = 'churned'), 0) as value_at_risk,
             COALESCE(AVG(lifetime_value) FILTER (WHERE status = 'churned'), 0) as avg_churned_value,
-            COALESCE(AVG(days_since_last_purchase) FILTER (WHERE status = 'churned'), 0) as avg_days_churned
+            COALESCE(AVG(days_since_last_purchase) FILTER (WHERE status = 'churned'), 0) as avg_days_churned,
+            (SELECT reference_date FROM dataset_reference) as reference_date,
+            (SELECT dataset_span_days FROM dataset_reference) as dataset_span_days
         FROM churn_classification
         """
         
@@ -63,6 +89,9 @@ class ChurnService:
         
         total = row['total_customers'] or 1
         churned = row['churned_customers'] or 0
+        
+        logger.info(f"📊 Churn calculation - Reference: {row['reference_date']}, Dataset span: {row['dataset_span_days']} days")
+        logger.info(f"📊 Churn metrics - Total: {total}, Churned: {churned}, At Risk: {row['at_risk_customers']}, Active: {row['active_customers']}")
         
         return {
             'churn_rate': round((churned / total) * 100, 2) if total > 0 else 0,
@@ -72,7 +101,9 @@ class ChurnService:
             'total_customers': total,
             'value_at_risk': float(row['value_at_risk'] or 0),
             'avg_churned_value': float(row['avg_churned_value'] or 0),
-            'avg_days_churned': int(row['avg_days_churned'] or 0)
+            'avg_days_churned': int(row['avg_days_churned'] or 0),
+            'reference_date': row['reference_date'].isoformat() if row.get('reference_date') else None,
+            'dataset_span_days': row['dataset_span_days']
         }
     
     async def get_at_risk_customers(
@@ -91,8 +122,15 @@ class ChurnService:
             
         Returns:
             List of at-risk customer records
+            
+        Note:
+            Uses the last sale date in dataset as reference point instead of CURRENT_DATE
         """
         query = f"""
+        WITH dataset_reference AS (
+            SELECT MAX(created_at::date) as reference_date
+            FROM sales
+        )
         SELECT 
             s.customer_id,
             COALESCE(c.customer_name, s.customer_name, 'Cliente #' || s.customer_id) as customer_name,
@@ -100,16 +138,19 @@ class ChurnService:
             SUM(s.total_amount) as lifetime_value,
             AVG(s.total_amount) as avg_order_value,
             MAX(s.created_at) as last_purchase_date,
-            CURRENT_DATE - MAX(s.created_at::date) as days_since_last_purchase,
+            (SELECT reference_date FROM dataset_reference) - MAX(s.created_at::date) as days_since_last_purchase,
             STRING_AGG(DISTINCT st.name, ', ') as favorite_stores
         FROM sales s
+        CROSS JOIN dataset_reference dr
         LEFT JOIN customers c ON s.customer_id = c.id
         LEFT JOIN stores st ON s.store_id = st.id
         WHERE s.customer_id IS NOT NULL
         GROUP BY s.customer_id, c.customer_name, s.customer_name
         HAVING 
             COUNT(*) >= {min_purchases}
-        ORDER BY MAX(s.created_at) DESC, lifetime_value DESC
+            AND (SELECT reference_date FROM dataset_reference) - MAX(s.created_at::date) BETWEEN {days_inactive // 2} AND {days_inactive}
+        ORDER BY (SELECT reference_date FROM dataset_reference) - MAX(s.created_at::date) DESC, 
+                 SUM(s.total_amount) DESC
         LIMIT {limit}
         """
         
@@ -140,15 +181,22 @@ class ChurnService:
         
         Returns:
             List of customer segments with RFM scores
+            
+        Note:
+            Uses the last sale date in dataset as reference point instead of CURRENT_DATE
         """
         query = """
-        WITH customer_metrics AS (
+        WITH dataset_reference AS (
+            SELECT MAX(created_at::date) as reference_date
+            FROM sales
+        ),
+        customer_metrics AS (
             SELECT 
                 customer_id,
-                CURRENT_DATE - MAX(created_at::date) as recency,
+                (SELECT reference_date FROM dataset_reference) - MAX(s.created_at::date) as recency,
                 COUNT(*) as frequency,
-                SUM(total_amount) as monetary
-            FROM sales
+                SUM(s.total_amount) as monetary
+            FROM sales s
             WHERE customer_id IS NOT NULL
             GROUP BY customer_id
         ),
@@ -213,16 +261,24 @@ class ChurnService:
         
         Args:
             start_date: Start date for analysis
-            end_date: End date for analysis
+            end_date: End date for analysis (uses last sale date if not provided)
             granularity: 'day', 'week', or 'month'
             
         Returns:
             List of churn metrics by time period
+            
+        Note:
+            If end_date not provided, uses last sale date from dataset
         """
-        if not start_date:
-            start_date = date.today() - timedelta(days=90)
-        if not end_date:
-            end_date = date.today()
+        # Get dataset date range if not provided
+        if not end_date or not start_date:
+            date_range_query = "SELECT MIN(created_at::date) as min_date, MAX(created_at::date) as max_date FROM sales"
+            date_row = await db.fetch_one(date_range_query)
+            if not end_date:
+                end_date = date_row['max_date']
+            if not start_date:
+                # Use 90 days before end_date or min_date, whichever is later
+                start_date = max(date_row['min_date'], end_date - timedelta(days=90))
         
         # Map granularity to SQL date truncation
         date_trunc_map = {
@@ -233,32 +289,46 @@ class ChurnService:
         trunc = date_trunc_map.get(granularity, 'week')
         
         query = f"""
-        WITH customer_last_purchase AS (
-            SELECT 
-                customer_id,
-                DATE_TRUNC('{trunc}', MAX(created_at)) as last_period,
-                COUNT(*) as total_purchases
-            FROM sales
-            WHERE created_at::date BETWEEN '{start_date}' AND '{end_date}'
-            GROUP BY customer_id
-        ),
-        period_series AS (
+        WITH period_series AS (
             SELECT generate_series(
                 DATE_TRUNC('{trunc}', '{start_date}'::date),
                 DATE_TRUNC('{trunc}', '{end_date}'::date),
                 '1 {trunc}'::interval
-            ) as period
+            )::date as period
+        ),
+        sales_by_period AS (
+            SELECT 
+                DATE_TRUNC('{trunc}', created_at)::date as period,
+                customer_id,
+                MAX(created_at) as last_purchase_in_period
+            FROM sales
+            WHERE created_at::date BETWEEN '{start_date}' AND '{end_date}'
+                AND customer_id IS NOT NULL
+            GROUP BY DATE_TRUNC('{trunc}', created_at)::date, customer_id
+        ),
+        customer_status_by_period AS (
+            SELECT 
+                ps.period,
+                COUNT(DISTINCT sbp.customer_id) as active_customers,
+                COUNT(DISTINCT CASE 
+                    WHEN sbp.last_purchase_in_period < ps.period - INTERVAL '30 days' 
+                    THEN sbp.customer_id 
+                END) as churned_customers
+            FROM period_series ps
+            LEFT JOIN sales_by_period sbp ON sbp.period <= ps.period
+            GROUP BY ps.period
         )
         SELECT 
-            ps.period::date as date,
-            COUNT(DISTINCT clp.customer_id) as active_customers,
-            COUNT(DISTINCT clp.customer_id) FILTER (
-                WHERE clp.last_period < ps.period - INTERVAL '30 days'
-            ) as churned_customers
-        FROM period_series ps
-        LEFT JOIN customer_last_purchase clp ON DATE_TRUNC('{trunc}', clp.last_period) = ps.period
-        GROUP BY ps.period
-        ORDER BY ps.period
+            period::date as date,
+            active_customers,
+            churned_customers,
+            CASE 
+                WHEN active_customers > 0 
+                THEN ROUND((churned_customers::numeric / active_customers) * 100, 2)
+                ELSE 0 
+            END as churn_rate
+        FROM customer_status_by_period
+        ORDER BY period
         """
         
         rows = await db.fetch_all(query)
@@ -268,10 +338,7 @@ class ChurnService:
                 'date': row['date'].isoformat(),
                 'active_customers': row['active_customers'],
                 'churned_customers': row['churned_customers'],
-                'churn_rate': round(
-                    (row['churned_customers'] / max(row['active_customers'], 1)) * 100, 
-                    2
-                )
+                'churn_rate': float(row['churn_rate'])
             }
             for row in rows
         ]

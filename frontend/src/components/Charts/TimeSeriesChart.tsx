@@ -36,16 +36,16 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
       case 'day':
         return 'data';
       case 'week':
-        return 'semana'; // EXTRACT(WEEK FROM created_at)
+        return 'semana'; // TO_CHAR(s.created_at, 'IYYY-IW') -> 2025-19
       case 'month':
-        return 'mes';
+        return 'mes'; // TO_CHAR(s.created_at, 'YYYY-MM') -> 2025-05
       default:
         return 'data';
     }
   };
 
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['time-series', selectedMetrics, granularity, filters],
+  const { data, isLoading, error, isFetching } = useQuery({
+    queryKey: ['time-series', selectedMetrics, granularity, JSON.stringify(filters)], // Stringify filters para garantir detecção de mudanças
     queryFn: () => analyticsAPI.query({
       metrics: selectedMetrics,
       dimensions: [getTemporalDimension()],
@@ -53,8 +53,28 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
       order_by: [{ field: getTemporalDimension(), direction: 'asc' }],
       limit: 365
     }),
-    enabled: selectedMetrics.length > 0
+    enabled: selectedMetrics.length > 0,
+    refetchOnWindowFocus: false,
+    staleTime: 0, // SEM CACHE - sempre buscar dados frescos quando filtros mudarem
+    gcTime: 0 // Não manter em cache após desmontagem
   });
+
+  // Debug: log do estado do componente (DEPOIS da declaração do useQuery)
+  console.log('🔍 TimeSeriesChart State:', {
+    granularity,
+    dimension: getTemporalDimension(),
+    selectedMetrics,
+    filters,
+    filtersString: JSON.stringify(filters),
+    hasData: !!data,
+    isLoading,
+    isFetching
+  });
+  
+  // Log tabular dos filtros para facilitar visualização
+  if (Object.keys(filters).length > 0) {
+    console.table(filters);
+  }
 
   useEffect(() => {
     if (!chartRef.current) return;
@@ -63,30 +83,88 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
       chartInstance.current = echarts.init(chartRef.current);
     }
 
-    if (data?.data && data.data.length > 0) {
+    // Mostrar loading no gráfico durante fetch
+    if (isFetching && !isLoading) {
+      chartInstance.current.showLoading('default', {
+        text: 'Atualizando...',
+        color: '#1890ff',
+        textColor: '#666',
+        maskColor: 'rgba(255, 255, 255, 0.4)',
+        zlevel: 0
+      });
+    } else {
+      chartInstance.current.hideLoading();
+    }
+
+    // Type assertion para garantir que data tem a estrutura esperada
+    const queryData = data as any;
+    
+    console.log('🔍 Query Data State:', {
+      hasData: !!queryData,
+      hasDataArray: queryData?.data ? true : false,
+      isArray: Array.isArray(queryData?.data),
+      length: queryData?.data?.length,
+      dimension: getTemporalDimension(),
+      rawData: queryData
+    });
+    
+    if (queryData?.data && Array.isArray(queryData.data) && queryData.data.length > 0) {
       const dimension = getTemporalDimension();
-      const dates = data.data.map((row: any) => row[dimension]);
+      const dates = queryData.data.map((row: any) => row[dimension]);
       
       console.log('📊 Time Series Data:', {
         granularity,
         dimension,
-        dataLength: data.data.length,
-        dates: dates,
-        firstRow: data.data[0]
+        dataLength: queryData.data.length,
+        dates: dates, // TODAS as datas (não apenas 5) para debug
+        allRows: queryData.data, // TODOS os dados brutos
+        firstRow: queryData.data[0],
+        selectedMetrics,
+        sampleValues: selectedMetrics.map(metric => ({
+          metric,
+          values: queryData.data.map((row: any) => row[metric]), // TODOS os valores
+          nullCount: queryData.data.filter((row: any) => row[metric] === null || row[metric] === undefined).length,
+          // Log específico para ticket_medio
+          ...(metric === 'ticket_medio' ? {
+            rawValues: queryData.data.map((row: any) => ({ date: row[dimension], value: row[metric] })),
+            min: Math.min(...queryData.data.map((row: any) => row[metric]).filter((v: any) => v !== null)),
+            max: Math.max(...queryData.data.map((row: any) => row[metric]).filter((v: any) => v !== null)),
+            avg: queryData.data.reduce((sum: number, row: any) => sum + (row[metric] || 0), 0) / queryData.data.length
+          } : {})
+        }))
       });
+      
+      // Log tabular do ticket_medio se estiver selecionado
+      if (selectedMetrics.includes('ticket_medio')) {
+        const ticketData = queryData.data.map((row: any) => ({
+          [dimension]: row[dimension],
+          ticket_medio: row.ticket_medio
+        }));
+        console.log('💰 TICKET MÉDIO DETALHADO:');
+        console.table(ticketData);
+      }
       
       // Separar métricas por escala
       const countMetrics = ['qtd_vendas', 'clientes_unicos'];
       const timeMetrics = ['tempo_medio_entrega'];
+      const ticketMetrics = ['ticket_medio']; // Ticket médio precisa de eixo próprio devido à pequena variação
       
       const series = selectedMetrics.map(metric => {
         const metricConfig = metricsOptions.find(m => m.value === metric);
-        const values = data.data.map((row: any) => Number(row[metric]) || 0);
+        const values = queryData.data.map((row: any) => {
+          const value = row[metric];
+          // Converter para número, tratando null/undefined
+          return value !== null && value !== undefined ? Number(value) : null;
+        });
 
         // Determinar qual eixo Y usar
-        let yAxisIndex = 0; // Padrão: eixo esquerdo (valores monetários/grandes)
-        if (countMetrics.includes(metric) || timeMetrics.includes(metric)) {
-          yAxisIndex = 1; // Eixo direito para contagens e tempo
+        let yAxisIndex = 0; // Padrão: eixo esquerdo (valores monetários grandes - faturamento)
+        if (ticketMetrics.includes(metric)) {
+          yAxisIndex = 1; // Eixo direito 1 para ticket médio (pequena variação)
+        } else if (countMetrics.includes(metric)) {
+          yAxisIndex = 2; // Eixo direito 2 para contagens
+        } else if (timeMetrics.includes(metric)) {
+          yAxisIndex = 3; // Eixo direito 3 para tempo
         }
 
         return {
@@ -96,22 +174,54 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
           data: values,
           smooth: true,
           symbol: 'circle',
-          symbolSize: 6,
+          symbolSize: 8,
+          connectNulls: true, // Conectar pontos mesmo com valores nulos
           itemStyle: {
-            color: metricConfig?.color || '#1890ff'
+            color: metricConfig?.color || '#1890ff',
+            borderWidth: 2,
+            borderColor: '#fff'
           },
           lineStyle: {
-            width: 2
+            width: 3,
+            shadowColor: 'rgba(0, 0, 0, 0.1)',
+            shadowBlur: 10,
+            shadowOffsetY: 2
+          },
+          emphasis: {
+            focus: 'series' as const,
+            lineStyle: {
+              width: 4
+            },
+            itemStyle: {
+              borderWidth: 3,
+              shadowBlur: 10,
+              shadowColor: 'rgba(0, 0, 0, 0.2)'
+            }
           },
           areaStyle: {
-            opacity: 0.1
-          }
+            opacity: 0.15
+          },
+          animation: true,
+          animationDelay: (idx: number) => idx * 50 // Animar pontos sequencialmente
         };
       });
+      
+      // Log das séries criadas (DEPOIS da criação)
+      console.log('📈 SÉRIES CRIADAS:', series.map(s => ({
+        name: s.name,
+        dataPoints: s.data.length,
+        yAxisIndex: s.yAxisIndex,
+        firstValue: s.data[0],
+        lastValue: s.data[s.data.length - 1]
+      })));
 
       const baseTheme = getEChartsTheme(theme);
       const option: echarts.EChartsOption = {
         ...baseTheme,
+        animation: true,
+        animationDuration: 800,
+        animationEasing: 'cubicOut',
+        animationThreshold: 2000,
         title: {
           text: 'Evolução Temporal',
           left: 'center',
@@ -126,8 +236,16 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
             type: 'cross',
             label: {
               backgroundColor: '#6a7985'
-            }
+            },
+            animation: true
           },
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          borderColor: '#ccc',
+          borderWidth: 1,
+          textStyle: {
+            color: '#333'
+          },
+          extraCssText: 'box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 6px;',
           formatter: (params: any) => {
             let tooltipContent = `<strong>${params[0].axisValue}</strong><br/>`;
             params.forEach((param: any) => {
@@ -149,7 +267,7 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
         },
         grid: {
           left: '3%',
-          right: '4%',
+          right: '25%', // Aumentar para acomodar 4 eixos (3 à direita)
           bottom: '15%',
           top: '15%',
           containLabel: true
@@ -198,7 +316,7 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
         yAxis: [
           {
             type: 'value',
-            name: 'R$ (Faturamento/Ticket)',
+            name: 'R$ (Faturamento)',
             position: 'left',
             axisLabel: {
               formatter: (value: number) => {
@@ -206,17 +324,51 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
                 if (value >= 1000) return `R$ ${(value / 1000).toFixed(1)}K`;
                 return `R$ ${value.toFixed(0)}`;
               }
+            },
+            splitLine: {
+              show: true,
+              lineStyle: {
+                type: 'dashed',
+                opacity: 0.3
+              }
+            }
+          },
+          {
+            type: 'value',
+            name: 'R$ (Ticket Médio)',
+            position: 'right',
+            axisLabel: {
+              formatter: (value: number) => `R$ ${value.toFixed(0)}`
+            },
+            splitLine: {
+              show: false
             }
           },
           {
             type: 'value',
             name: 'Quantidade',
             position: 'right',
+            offset: 80,
             axisLabel: {
               formatter: (value: number) => {
                 if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
                 return value.toFixed(0);
               }
+            },
+            splitLine: {
+              show: false
+            }
+          },
+          {
+            type: 'value',
+            name: 'Tempo (min)',
+            position: 'right',
+            offset: 160, // Deslocamento maior para 4 eixos
+            axisLabel: {
+              formatter: (value: number) => `${value.toFixed(0)} min`
+            },
+            splitLine: {
+              show: false
             }
           }
         ],
@@ -234,7 +386,12 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
         series: series
       };
 
-      chartInstance.current.setOption(option);
+      // notMerge: true força o ECharts a recriar o gráfico com as novas séries
+      // replaceMerge: ['series'] substitui completamente o array de séries
+      chartInstance.current.setOption(option, {
+        notMerge: false,
+        replaceMerge: ['series', 'yAxis'] // Substitui séries e eixos completamente
+      });
     }
 
     // Resize handler
@@ -244,7 +401,17 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, [data, selectedMetrics, granularity, theme]);
+  }, [data, selectedMetrics, granularity, theme, isFetching, isLoading]);
+
+  // Cleanup ao desmontar
+  useEffect(() => {
+    return () => {
+      if (chartInstance.current) {
+        chartInstance.current.dispose();
+        chartInstance.current = null;
+      }
+    };
+  }, []);
 
   const handleExport = () => {
     if (chartInstance.current) {
@@ -294,6 +461,9 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
       }
       extra={
         <Space>
+          {isFetching && !isLoading && (
+            <Spin size="small" />
+          )}
           <Select
             mode="multiple"
             placeholder="Selecione métricas"
@@ -329,17 +499,41 @@ export const TimeSeriesChart = ({ filters = {} }: TimeSeriesChartProps) => {
     >
       <div ref={chartRef} style={{ width: '100%', height: '500px' }} />
       
-      {data?.data && data.data.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
-          <p>Nenhum dado disponível para o período selecionado</p>
-        </div>
-      )}
-      
-      {data?.data && data.data.length > 0 && data.data.length < 3 && (
-        <div style={{ textAlign: 'center', padding: '10px', color: '#faad14', fontSize: '12px' }}>
-          ⚠️ Poucos pontos de dados para esta granularidade ({data.data.length} {granularity === 'day' ? 'dias' : granularity === 'week' ? 'semanas' : 'meses'})
-        </div>
-      )}
+      {(() => {
+        const queryData = data as any;
+        if (queryData?.data && Array.isArray(queryData.data)) {
+          if (queryData.data.length === 0) {
+            return (
+              <div style={{ textAlign: 'center', padding: '40px', color: '#999' }}>
+                <p>Nenhum dado disponível para o período selecionado</p>
+              </div>
+            );
+          }
+          if (queryData.data.length === 1) {
+            return (
+              <Alert
+                message={`Apenas 1 ${granularity === 'day' ? 'dia' : granularity === 'week' ? 'semana' : 'mês'} de dados`}
+                description={
+                  granularity === 'month' 
+                    ? "Os dados disponíveis estão concentrados em um único mês. Para visualizar melhor a tendência, tente usar granularidade 'Por Dia' ou 'Por Semana'."
+                    : "Dados insuficientes para gerar gráfico de tendência. Selecione um período maior ou use uma granularidade diferente."
+                }
+                type="warning"
+                showIcon
+                style={{ margin: '20px' }}
+              />
+            );
+          }
+          if (queryData.data.length < 3) {
+            return (
+              <div style={{ textAlign: 'center', padding: '10px', color: '#faad14', fontSize: '12px' }}>
+                ⚠️ Poucos pontos de dados para esta granularidade ({queryData.data.length} {granularity === 'day' ? 'dias' : granularity === 'week' ? 'semanas' : 'meses'}). Considere usar uma granularidade menor para visualização mais detalhada.
+              </div>
+            );
+          }
+        }
+        return null;
+      })()}
     </Card>
   );
 };

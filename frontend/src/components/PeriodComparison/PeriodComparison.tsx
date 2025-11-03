@@ -8,20 +8,25 @@ import './PeriodComparison.css';
 
 const { RangePicker } = DatePicker;
 
+// API Configuration
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 interface PeriodComparisonProps {
   defaultBasePeriod?: [Dayjs, Dayjs];
   defaultComparePeriod?: [Dayjs, Dayjs];
+  filters?: Record<string, any>;
 }
 
 export const PeriodComparison = ({ 
   defaultBasePeriod = [dayjs('2025-05-13'), dayjs('2025-05-20')],
-  defaultComparePeriod = [dayjs('2025-05-05'), dayjs('2025-05-12')]
+  defaultComparePeriod = [dayjs('2025-05-05'), dayjs('2025-05-12')],
+  filters = {}
 }: PeriodComparisonProps) => {
   const [basePeriod, setBasePeriod] = useState<[Dayjs, Dayjs]>(defaultBasePeriod);
   const [comparePeriod, setComparePeriod] = useState<[Dayjs, Dayjs]>(defaultComparePeriod);
 
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['period-comparison', basePeriod, comparePeriod],
+    queryKey: ['period-comparison', basePeriod, comparePeriod, filters],
     queryFn: async () => {
       const params = new URLSearchParams({
         base_start: basePeriod[0].format('YYYY-MM-DD'),
@@ -30,7 +35,16 @@ export const PeriodComparison = ({
         compare_end: comparePeriod[1].format('YYYY-MM-DD')
       });
 
-      const response = await fetch(`http://localhost:8000/api/v1/analytics/compare?${params}`);
+      // Add global filters to the request
+      Object.entries(filters).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          value.forEach(v => params.append(key, String(v)));
+        } else if (value !== null && value !== undefined) {
+          params.append(key, String(value));
+        }
+      });
+
+      const response = await fetch(`${API_BASE_URL}/api/v1/analytics/compare?${params}`);
       if (!response.ok) throw new Error('Failed to fetch comparison data');
       return response.json();
     }

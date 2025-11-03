@@ -30,8 +30,11 @@
     },
     "churn": {
       "title": "Churn Analysis",
+      "subtitle": "Customer retention and churn risk analysis",
       "atRisk": "Customers at Risk",
       "churned": "Churned Customers",
+      "churnRate": "Churn Rate",
+      "activeCustomers": "Active Customers",
       "rfmSegmentation": "RFM Segmentation",
       "valueAtRisk": "Value at Risk",
       "lastPurchase": "Last Purchase",
@@ -40,7 +43,12 @@
       "recency": "Recency",
       "monetary": "Monetary",
       "daysInactive": "Days Inactive",
-      "minPurchases": "Minimum Purchases"
+      "minPurchases": "Minimum Purchases",
+      "days": "days",
+      "granularity": "Granularity",
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
     },
     "alerts": {
       "title": "Alert Management",

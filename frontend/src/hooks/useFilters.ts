@@ -3,6 +3,9 @@ import { useEffect } from 'react';
 import { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 
+// API Configuration
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
 export interface FilterState {
   // Date Range
   dateRange: [Dayjs | null, Dayjs | null] | null;
@@ -78,7 +81,7 @@ export const useFilters = () => {
       store.setIsLoading(true);
       try {
         // Fetch unique channels
-        const channelsRes = await fetch('http://localhost:8000/api/v1/analytics/query', {
+        const channelsRes = await fetch(`${API_BASE_URL}/api/v1/analytics/query`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -96,7 +99,7 @@ export const useFilters = () => {
         store.setChannelOptions(channelOptions);
 
         // Fetch unique stores
-        const storesRes = await fetch('http://localhost:8000/api/v1/analytics/query', {
+        const storesRes = await fetch(`${API_BASE_URL}/api/v1/analytics/query`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -114,7 +117,7 @@ export const useFilters = () => {
         store.setStoreOptions(storeOptions);
 
         // Fetch unique products (limited to top 100 for performance)
-        const productsRes = await fetch('http://localhost:8000/api/v1/analytics/query', {
+        const productsRes = await fetch(`${API_BASE_URL}/api/v1/analytics/query`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

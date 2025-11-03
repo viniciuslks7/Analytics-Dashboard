@@ -277,7 +277,15 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
       const timer = setTimeout(() => {
         if (timelineChartRef.current && !timelineChartInstance.current) {
           timelineChartInstance.current = echarts.init(timelineChartRef.current);
-          const dates = timelineData.data.map((row: any) => new Date(row.data_venda).toLocaleDateString('pt-BR'));
+          const dates = timelineData.data.map((row: any) => {
+            const dateValue = row.data_venda || row.data || row.created_at;
+            if (!dateValue) return 'Data inválida';
+            try {
+              return new Date(dateValue).toLocaleDateString('pt-BR');
+            } catch {
+              return 'Data inválida';
+            }
+          });
           const revenues = timelineData.data.map((row: any) => Number(row.faturamento) || 0);
           const quantities = timelineData.data.map((row: any) => Number(row.qtd_vendas) || 0);
           
@@ -305,7 +313,15 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
       timelineChartInstance.current = echarts.init(timelineChartRef.current);
     }
 
-    const dates = timelineData.data.map((row: any) => new Date(row.data_venda).toLocaleDateString('pt-BR'));
+    const dates = timelineData.data.map((row: any) => {
+      const dateValue = row.data_venda || row.data || row.created_at;
+      if (!dateValue) return 'Data inválida';
+      try {
+        return new Date(dateValue).toLocaleDateString('pt-BR');
+      } catch {
+        return 'Data inválida';
+      }
+    });
     const revenues = timelineData.data.map((row: any) => Number(row.faturamento) || 0);
     const quantities = timelineData.data.map((row: any) => Number(row.qtd_vendas) || 0);
 

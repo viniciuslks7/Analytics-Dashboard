@@ -3,6 +3,7 @@ Configuration settings for the Restaurant Analytics API
 """
 from pydantic_settings import BaseSettings
 from typing import List
+import os
 
 
 class Settings(BaseSettings):
@@ -19,9 +20,9 @@ class Settings(BaseSettings):
     API_TITLE: str = "Restaurant Analytics API"
     API_VERSION: str = "1.0.0"
     API_HOST: str = "0.0.0.0"
-    API_PORT: int = 8000
+    API_PORT: int = int(os.getenv("PORT", "8000"))
     
-    # CORS
+    # CORS - Allow multiple origins from environment
     CORS_ORIGINS: List[str] = [
         "http://localhost:3000",
         "http://localhost:5173",
@@ -32,6 +33,18 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Add ALLOWED_ORIGINS from environment to CORS_ORIGINS
+        allowed_origins = os.getenv("ALLOWED_ORIGINS", "")
+        if allowed_origins:
+            additional_origins = [origin.strip() for origin in allowed_origins.split(",")]
+            self.CORS_ORIGINS.extend(additional_origins)
+        
+        # Set DEBUG based on ENVIRONMENT
+        if self.ENVIRONMENT == "production":
+            self.DEBUG = False
     
     class Config:
         env_file = ".env"

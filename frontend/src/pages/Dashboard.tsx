@@ -1,5 +1,6 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { analyticsAPI } from '../api/analytics';
 import KPICard from '../components/KPICard';
 import FilterPanel from '../components/Filters/FilterPanel';
@@ -17,6 +18,7 @@ import {
 } from '../components/Charts';
 
 const Dashboard: React.FC = () => {
+  const { t } = useTranslation();
   const filterState = useFilters();
   const apiFilters = getAPIFilters(filterState);
 
@@ -30,7 +32,7 @@ const Dashboard: React.FC = () => {
     return (
       <div className="dashboard-loading">
         <div className="spinner"></div>
-        <p>Carregando dashboard...</p>
+        <p>{t('app.loading')}</p>
       </div>
     );
   }
@@ -38,8 +40,8 @@ const Dashboard: React.FC = () => {
   if (error) {
     return (
       <div className="dashboard-error">
-        <h3>Erro ao carregar dados</h3>
-        <p>{error instanceof Error ? error.message : 'Erro desconhecido'}</p>
+        <h3>{t('app.error')}</h3>
+        <p>{error instanceof Error ? error.message : t('app.error')}</p>
       </div>
     );
   }
@@ -48,7 +50,7 @@ const Dashboard: React.FC = () => {
     <div className="dashboard" id="dashboard-content">
       <header className="dashboard-header">
         <div>
-          <h1>Analytics Dashboard</h1>
+          <h1>{t('dashboard.title')}</h1>
           <p className="period">{kpiData?.period}</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
@@ -65,9 +67,13 @@ const Dashboard: React.FC = () => {
       <FilterPanel />
 
       {/* Comparação de Períodos */}
-      <PeriodComparison />
+      <PeriodComparison filters={apiFilters} />
 
+      {/* KPI Cards com Valores Totais Filtrados */}
       <section className="kpi-section">
+        <h2 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: 600 }}>
+          Valores Totais
+        </h2>
         <div className="kpi-grid">
           {kpiData?.kpis.map((kpi, index) => (
             <KPICard key={index} kpi={kpi} />

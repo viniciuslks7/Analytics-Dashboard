@@ -11,13 +11,21 @@ export const analyticsAPI = {
   getKPIs: async (filters?: Record<string, any>): Promise<KPIDashboard> => {
     const params: any = {};
     
-    // Convert filters to query params
+    // Convert filters to query params (matching backend parameter names)
     if (filters) {
       if (filters.data_venda_gte) params.start_date = filters.data_venda_gte;
       if (filters.data_venda_lte) params.end_date = filters.data_venda_lte;
-      if (filters.canal_venda) params.channels = filters.canal_venda.join(',');
-      if (filters.nome_loja) params.stores = filters.nome_loja.join(',');
-      if (filters.nome_produto) params.products = filters.nome_produto.join(',');
+      
+      // Send as arrays to match backend List[str] expectations
+      if (filters.canal_venda && filters.canal_venda.length > 0) {
+        params.canal_venda = filters.canal_venda;
+      }
+      if (filters.nome_loja && filters.nome_loja.length > 0) {
+        params.nome_loja = filters.nome_loja;
+      }
+      if (filters.nome_produto && filters.nome_produto.length > 0) {
+        params.nome_produto = filters.nome_produto;
+      }
     }
     
     const response = await apiClient.get('/api/v1/analytics/kpis', { params });

@@ -49,8 +49,8 @@ function AppContent() {
   ];
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
-      <Header style={{ background: isDark ? '#141414' : '#001529', padding: '0 24px' }}>
+    <Layout style={{ minHeight: '100vh', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Header style={{ background: isDark ? '#141414' : '#001529', padding: '0 24px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ color: 'white', fontSize: '20px', fontWeight: 'bold' }}>
             📊 {t('app.title')}
@@ -75,7 +75,7 @@ function AppContent() {
         </div>
       </Header>
       
-      <Content style={{ padding: '0' }}>
+      <Content style={{ padding: '0', flex: 1, overflow: 'hidden' }}>
         {/* Sistema de notificação automática de alertas */}
         <AlertNotification checkInterval={60000} enabled={true} />
         

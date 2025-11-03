@@ -30,8 +30,11 @@
     },
     "churn": {
       "title": "Análise de Churn",
+      "subtitle": "Análise de retenção e clientes em risco de churn",
       "atRisk": "Clientes em Risco",
       "churned": "Clientes Perdidos",
+      "churnRate": "Taxa de Churn",
+      "activeCustomers": "Clientes Ativos",
       "rfmSegmentation": "Segmentação RFM",
       "valueAtRisk": "Valor em Risco",
       "lastPurchase": "Última Compra",
@@ -39,8 +42,13 @@
       "frequency": "Frequência",
       "recency": "Recência",
       "monetary": "Monetário",
-      "daysInactive": "Dias Inativo",
-      "minPurchases": "Compras Mínimas"
+      "daysInactive": "Dias de Inatividade",
+      "minPurchases": "Compras Mínimas",
+      "days": "dias",
+      "granularity": "Granularidade",
+      "day": "Dia",
+      "week": "Semana",
+      "month": "Mês"
     },
     "alerts": {
       "title": "Gerenciamento de Alertas",

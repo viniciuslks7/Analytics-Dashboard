@@ -145,7 +145,10 @@ export const HourlyHeatmap = ({ filters = {} }: HourlyHeatmapProps) => {
 
   useEffect(() => {
     return () => {
-      chartInstance.current?.dispose();
+      if (chartInstance.current) {
+        chartInstance.current.dispose();
+        chartInstance.current = null;
+      }
     };
   }, []);
 

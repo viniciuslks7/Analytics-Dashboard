@@ -138,7 +138,10 @@ export const SalesChannelChart = ({ filters = {} }: SalesChannelChartProps) => {
   // Cleanup ao desmontar
   useEffect(() => {
     return () => {
-      chartInstance.current?.dispose();
+      if (chartInstance.current) {
+        chartInstance.current.dispose();
+        chartInstance.current = null;
+      }
     };
   }, []);
 
