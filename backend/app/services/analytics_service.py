@@ -209,23 +209,47 @@ class AnalyticsService:
             # Skip date filters - they're handled by date_range
             if field in ('data_venda_gte', 'data_venda_lte'):
                 continue
+            
+            # Map field name to SQL expression if it's a known dimension
+            field_expr = field
+            if field in self.DIMENSIONS_MAP:
+                field_expr, join_hint = self.DIMENSIONS_MAP[field]
+                # Ensure necessary joins are added for this filter
+                if "JOIN channels" in join_hint and "channels" not in joins_needed:
+                    joins_needed.add("channels")
+                    from_clause += "\nJOIN channels ch ON s.channel_id = ch.id"
+                if "JOIN stores" in join_hint and "stores" not in joins_needed:
+                    joins_needed.add("stores")
+                    from_clause += "\nJOIN stores st ON s.store_id = st.id"
+                if "JOIN product_sales" in join_hint and "product_sales" not in joins_needed:
+                    joins_needed.add("product_sales")
+                    from_clause += "\nJOIN product_sales ps ON s.id = ps.sale_id"
+                if "JOIN products" in join_hint and "products" not in joins_needed:
+                    joins_needed.add("products")
+                    from_clause += "\nJOIN products p ON ps.product_id = p.id"
+                if "JOIN categories" in join_hint and "categories" not in joins_needed:
+                    joins_needed.add("categories")
+                    from_clause += "\nJOIN categories cat ON p.category_id = cat.id"
+                if "JOIN delivery_addresses" in join_hint and "delivery_addresses" not in joins_needed:
+                    joins_needed.add("delivery_addresses")
+                    from_clause += "\nLEFT JOIN delivery_addresses da ON s.id = da.sale_id"
                 
             if isinstance(filter_value, dict):
                 # Complex filter with operator
                 for operator, value in filter_value.items():
                     if operator == "eq":
                         params.append(value)
-                        where_conditions.append(f"{field} = %s")
+                        where_conditions.append(f"{field_expr} = %s")
                     elif operator == "in" and isinstance(value, list):
                         placeholders = []
                         for v in value:
                             params.append(v)
                             placeholders.append("%s")
-                        where_conditions.append(f"{field} IN ({', '.join(placeholders)})")
+                        where_conditions.append(f"{field_expr} IN ({', '.join(placeholders)})")
                     elif operator in ["gt", "gte", "lt", "lte"]:
                         op_map = {"gt": ">", "gte": ">=", "lt": "<", "lte": "<="}
                         params.append(value)
-                        where_conditions.append(f"{field} {op_map[operator]} %s")
+                        where_conditions.append(f"{field_expr} {op_map[operator]} %s")
             else:
                 # Simple equality filter (list = IN clause, single value = equality)
                 if isinstance(filter_value, list):
@@ -233,10 +257,10 @@ class AnalyticsService:
                     for v in filter_value:
                         params.append(v)
                         placeholders.append("%s")
-                    where_conditions.append(f"{field} IN ({', '.join(placeholders)})")
+                    where_conditions.append(f"{field_expr} IN ({', '.join(placeholders)})")
                 else:
                     params.append(filter_value)
-                    where_conditions.append(f"{field} = %s")
+                    where_conditions.append(f"{field_expr} = %s")
         
         where_clause = "WHERE " + " AND ".join(where_conditions) if where_conditions else ""
         
