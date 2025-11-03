@@ -391,6 +391,34 @@ chore(deps): atualizar dependências
 
 ---
 
+## 📚 Documentação Completa
+
+Este projeto possui documentação técnica abrangente:
+
+### 📖 Principais Documentos
+- **[Documentação Geral](./docs/README.md)** - Visão geral completa do projeto
+- **[Índice de Features](./docs/features/FEATURE_INDEX.md)** - 13 features ativas (1 removida)
+- **[Arquitetura](./docs/technical/ARCHITECTURE.md)** - Arquitetura detalhada do sistema
+- **[Bugfixes](./docs/technical/BUGFIXES.md)** - 15 bugs corrigidos documentados
+
+### 🎯 Features Documentadas (13 ativas + 1 removida)
+1. **Dashboard Analytics & KPIs** - 6+ KPIs em tempo real
+2. ~~**Query Builder**~~ - ❌ **REMOVIDO** (segurança - SQL injection prevention)
+3. **Period Comparison** - Comparação automática de períodos
+4. **ECharts Visualizations** - 7+ tipos de gráficos
+5. **Global Filters** - Filtros aplicados globalmente
+6. **Export System** - CSV, JSON, PDF, PNG
+7. **Churn/RFM Analysis** - Segmentação de clientes
+8. **Dashboard Manager** - Dashboards customizáveis
+9. **Drill-Down** - Análise contextual detalhada
+10. **Data Table** - Tabela interativa com ordenação
+11. **Alerts System** - Sistema de alertas configurável
+12. **i18n** - Suporte a 3 idiomas (PT, EN, ES)
+13. **Hourly Heatmap** - Análise por hora do dia
+14. **Redis Cache** - Cache distribuído (24-98x speedup)
+
+---
+
 ## 🎥 Demo
 
 **Vídeo:** [Em breve - link do YouTube]

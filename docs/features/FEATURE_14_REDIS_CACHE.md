@@ -783,6 +783,12 @@ async def set(self, prefix: str, data: dict, value: Any, ttl: int = None):
 
 ## 📚 Referências
 
+### Documentação Relacionada
+- [FEATURE_INDEX.md](./FEATURE_INDEX.md) - Índice de todas as features
+- [ARCHITECTURE.md](../technical/ARCHITECTURE.md) - Arquitetura e performance
+- [FEATURE_01_DASHBOARD_ANALYTICS.md](./FEATURE_01_DASHBOARD_ANALYTICS.md) - Cache usage
+- [FEATURE_09_DRILL_DOWN.md](./FEATURE_09_DRILL_DOWN.md) - React Query cache
+
 ### Documentação
 - [Redis Documentation](https://redis.io/docs/)
 - [aioredis](https://aioredis.readthedocs.io/)
@@ -815,10 +821,12 @@ git log --grep="cache" --oneline
 
 ## 👥 Contribuidores
 
-- **Feature Owner**: [Seu Nome]
-- **Review**: [Tech Lead]
-- **Data de Implementação**: Dezembro 2024
-- **Status**: ✅ Implementado
+- **Desenvolvedor:** Vinicius Oliveira
+- **Email:** vinicius.oliveiratwt@gmail.com
+- **Data de Implementação:** 03 de novembro de 2025
+- **Status:** ✅ Implementado
+
+> 💡 **Nota:** Documentação revisada e aprovada pelo desenvolvedor.
 
 ---
 
@@ -829,3 +837,7 @@ O sistema de cache Redis foi projetado para maximizar performance sem sacrificar
 A escolha de TTL de 5 minutos oferece um bom equilíbrio para queries analíticas, onde dados não precisam ser real-time mas também não devem ficar muito desatualizados. Para casos específicos (dashboards executivos, relatórios históricos), considere implementar TTLs dinâmicos.
 
 **Performance é importante, mas dados corretos são essenciais!** 🎯
+
+---
+
+**Desenvolvido por Vinicius Oliveira** · vinicius.oliveiratwt@gmail.com

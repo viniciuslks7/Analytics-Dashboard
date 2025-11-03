@@ -907,7 +907,18 @@ const languages = [
 
 ---
 
-## 📚 Recursos e Referências
+## � Desenvolvedor
+
+**Nome:** Vinicius Oliveira  
+**Email:** vinicius.oliveiratwt@gmail.com  
+**Data:** 03 de novembro de 2025  
+**Duração:** ~1 hora (1 commit)
+
+> 💡 **Nota:** Documentação revisada e aprovada pelo desenvolvedor.
+
+---
+
+## �📚 Recursos e Referências
 
 ### Documentação
 - [react-i18next](https://react.i18next.com/)
@@ -920,6 +931,10 @@ const languages = [
 
 ---
 
-**Última Atualização:** 03/11/2025 01:30  
+**Última Atualização:** 03/11/2025  
 **Status:** ✅ Feature Completa e Funcional  
 **Idiomas Disponíveis:** 🇧🇷 Português | 🇺🇸 English | 🇪🇸 Español
+
+---
+
+**Desenvolvido por Vinicius Oliveira** · vinicius.oliveiratwt@gmail.com

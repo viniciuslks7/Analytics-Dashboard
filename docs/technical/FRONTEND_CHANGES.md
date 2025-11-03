@@ -338,4 +338,18 @@ const [form] = Form.useForm();
 
 ---
 
-**Última Atualização:** 03/11/2025 01:45
+## 👤 Desenvolvedor
+
+**Nome:** Vinicius Oliveira  
+**Email:** vinicius.oliveiratwt@gmail.com  
+**Data:** 03 de novembro de 2025
+
+> 💡 **Nota:** Documentação revisada e aprovada pelo desenvolvedor.
+
+---
+
+**Última Atualização:** 03/11/2025
+
+---
+
+**Desenvolvido por Vinicius Oliveira** · vinicius.oliveiratwt@gmail.com
