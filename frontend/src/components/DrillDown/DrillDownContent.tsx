@@ -114,9 +114,32 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
       dataLength: productsData?.data?.length 
     });
     
-    if (!productsChartRef.current || productsLoading || !productsData?.data || productsData.data.length === 0) {
-      console.log('📊 Products chart: skipping render');
+    if (productsLoading || !productsData?.data || productsData.data.length === 0) {
+      console.log('📊 Products chart: skipping render (loading or no data)');
       return;
+    }
+
+    // Retry se o ref não estiver pronto ainda
+    if (!productsChartRef.current) {
+      console.log('📊 Products chart: ref not ready, retrying in 50ms');
+      const timer = setTimeout(() => {
+        if (productsChartRef.current && !productsChartInstance.current) {
+          productsChartInstance.current = echarts.init(productsChartRef.current);
+          const products = productsData.data.map((row: any) => row.nome_produto || 'Desconhecido');
+          const values = productsData.data.map((row: any) => Number(row.faturamento) || 0);
+          console.log('📊 Products chart data (delayed):', { products, values });
+          
+          const option = {
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: { type: 'category', data: products, axisLabel: { rotate: 45, interval: 0 } },
+            yAxis: { type: 'value' },
+            series: [{ name: 'Faturamento', type: 'bar', data: values, itemStyle: { color: '#1890ff' } }]
+          };
+          productsChartInstance.current.setOption(option);
+        }
+      }, 50);
+      return () => clearTimeout(timer);
     }
 
     if (!productsChartInstance.current) {
@@ -190,9 +213,32 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
       dataLength: hoursData?.data?.length 
     });
     
-    if (!hoursChartRef.current || hoursLoading || !hoursData?.data || hoursData.data.length === 0) {
-      console.log('⏰ Hours chart: skipping render');
+    if (hoursLoading || !hoursData?.data || hoursData.data.length === 0) {
+      console.log('⏰ Hours chart: skipping render (loading or no data)');
       return;
+    }
+
+    // Retry se o ref não estiver pronto ainda
+    if (!hoursChartRef.current) {
+      console.log('⏰ Hours chart: ref not ready, retrying in 50ms');
+      const timer = setTimeout(() => {
+        if (hoursChartRef.current && !hoursChartInstance.current) {
+          hoursChartInstance.current = echarts.init(hoursChartRef.current);
+          const hours = hoursData.data.map((row: any) => `${row.hora}h`);
+          const quantities = hoursData.data.map((row: any) => Number(row.qtd_vendas) || 0);
+          console.log('⏰ Hours chart data (delayed):', { hours, quantities });
+          
+          const option = {
+            tooltip: { trigger: 'axis' },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: { type: 'category', data: hours },
+            yAxis: { type: 'value' },
+            series: [{ name: 'Quantidade', type: 'line', data: quantities, smooth: true, itemStyle: { color: '#52c41a' } }]
+          };
+          hoursChartInstance.current.setOption(option);
+        }
+      }, 50);
+      return () => clearTimeout(timer);
     }
 
     if (!hoursChartInstance.current) {
@@ -261,9 +307,40 @@ export const DrillDownContent = ({ context }: DrillDownContentProps) => {
       dataLength: timelineData?.data?.length 
     });
     
-    if (!timelineChartRef.current || timelineLoading || !timelineData?.data || timelineData.data.length === 0) {
-      console.log('📈 Timeline chart: skipping render');
+    if (timelineLoading || !timelineData?.data || timelineData.data.length === 0) {
+      console.log('📈 Timeline chart: skipping render (loading or no data)');
       return;
+    }
+
+    // Retry se o ref não estiver pronto ainda
+    if (!timelineChartRef.current) {
+      console.log('📈 Timeline chart: ref not ready, retrying in 50ms');
+      const timer = setTimeout(() => {
+        if (timelineChartRef.current && !timelineChartInstance.current) {
+          timelineChartInstance.current = echarts.init(timelineChartRef.current);
+          const dates = timelineData.data.map((row: any) => new Date(row.data_venda).toLocaleDateString('pt-BR'));
+          const revenues = timelineData.data.map((row: any) => Number(row.faturamento) || 0);
+          const quantities = timelineData.data.map((row: any) => Number(row.qtd_vendas) || 0);
+          console.log('📈 Timeline chart data (delayed):', { dates, revenues, quantities });
+          
+          const option = {
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['Faturamento', 'Quantidade'] },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: { type: 'category', data: dates, axisLabel: { rotate: 45 } },
+            yAxis: [
+              { type: 'value', name: 'Faturamento', position: 'left' },
+              { type: 'value', name: 'Quantidade', position: 'right' }
+            ],
+            series: [
+              { name: 'Faturamento', type: 'line', data: revenues, smooth: true, itemStyle: { color: '#1890ff' } },
+              { name: 'Quantidade', type: 'line', data: quantities, smooth: true, yAxisIndex: 1, itemStyle: { color: '#52c41a' } }
+            ]
+          };
+          timelineChartInstance.current.setOption(option);
+        }
+      }, 50);
+      return () => clearTimeout(timer);
     }
 
     if (!timelineChartInstance.current) {
