@@ -19,16 +19,17 @@ class Database:
         """Create database connection pool with retry logic"""
         if not self.pool:
             try:
+                # Otimizado para free tier: menos conexões = melhor performance
                 self.pool = AsyncConnectionPool(
                     settings.DATABASE_URL,
-                    min_size=2,
-                    max_size=10,
-                    timeout=30,
-                    max_waiting=10,
+                    min_size=1,
+                    max_size=5,
+                    timeout=20,
+                    max_waiting=5,
                     open=False
                 )
                 await self.pool.open()
-                logger.info("✓ Database connection pool created (min: 2, max: 10)")
+                logger.info("✓ Database connection pool created (min: 1, max: 5)")
             except Exception as e:
                 logger.error(f"✗ Failed to create database pool: {e}")
                 raise
